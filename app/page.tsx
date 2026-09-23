@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { classifyQuestion } from "@/app/actions";
 import AeroShards, { type AeroShardsHandle, type AeroShardsProps } from "@/components/aero-shards";
 import {
   MagicEightBall,
@@ -78,6 +79,27 @@ export default function Home() {
   }, []);
   const handleRest = useCallback(() => setThinking(false), []);
 
+  // Jev picks the answer category. An empty question gets a random answer;
+  // a failed call gets an "unsure" one, never a joke that could land badly.
+  const [question, setQuestion] = useState("");
+  const [classifying, setClassifying] = useState(false);
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!question.trim()) {
+      ballRef.current?.ask();
+      return;
+    }
+    setClassifying(true);
+    setThinking(true);
+    const category = await classifyQuestion(question).catch(() => null);
+    setClassifying(false);
+    if (ballRef.current?.ask({ category: category ?? "unsure" })) {
+      setQuestion("");
+    } else {
+      setThinking(false);
+    }
+  };
+
   return (
     <>
       {/* lvh keeps the background's size fixed while mobile browser bars come
@@ -106,19 +128,32 @@ export default function Home() {
         />
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 p-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
-          <button
-            type="button"
-            onClick={() => ballRef.current?.ask()}
-            disabled={busy}
-            // Mouse hover and keyboard focus only: a tap must not leave the light on.
-            onPointerEnter={(event) => event.pointerType === "mouse" && setButtonHighlighted(true)}
-            onPointerLeave={() => setButtonHighlighted(false)}
-            onFocus={(event) => setButtonHighlighted(event.currentTarget.matches(":focus-visible"))}
-            onBlur={() => setButtonHighlighted(false)}
-            className="pointer-events-auto rounded-full border border-violet-200/15 bg-violet-950/30 px-8 py-3 text-sm font-semibold tracking-[0.25em] text-violet-50 uppercase shadow-[0_0_40px_-8px_#A855F7] backdrop-blur-md transition hover:border-violet-200/30 hover:bg-violet-900/40 hover:shadow-[0_0_48px_-4px_#A855F7] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-300 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+          <form
+            onSubmit={handleSubmit}
+            className="pointer-events-auto flex w-full max-w-sm flex-col items-center gap-3"
           >
-            Ask the ball
-          </button>
+            <input
+              type="text"
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
+              maxLength={200}
+              placeholder="Ask a yes or no question"
+              aria-label="Your question"
+              className="w-full rounded-full border border-violet-200/15 bg-violet-950/30 px-5 py-3 text-center text-sm text-violet-50 placeholder:text-violet-200/40 backdrop-blur-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-300"
+            />
+            <button
+              type="submit"
+              disabled={busy || classifying}
+              // Mouse hover and keyboard focus only: a tap must not leave the light on.
+              onPointerEnter={(event) => event.pointerType === "mouse" && setButtonHighlighted(true)}
+              onPointerLeave={() => setButtonHighlighted(false)}
+              onFocus={(event) => setButtonHighlighted(event.currentTarget.matches(":focus-visible"))}
+              onBlur={() => setButtonHighlighted(false)}
+              className="pointer-events-auto rounded-full border border-violet-200/15 bg-violet-950/30 px-8 py-3 text-sm font-semibold tracking-[0.25em] text-violet-50 uppercase shadow-[0_0_40px_-8px_#A855F7] backdrop-blur-md transition hover:border-violet-200/30 hover:bg-violet-900/40 hover:shadow-[0_0_48px_-4px_#A855F7] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-300 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+            >
+              Ask the ball
+            </button>
+          </form>
           <p className="text-xs tracking-[0.2em] text-violet-200/50 uppercase select-none">
             {canShake ? "or shake your phone" : "or tap it"}
           </p>

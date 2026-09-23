@@ -1,6 +1,6 @@
 import { CanvasTexture, SRGBColorSpace } from "three";
 
-export type AnswerCategory = "yes" | "no" | "unsure" | "cannotAnswer";
+export type AnswerCategory = "yes" | "no" | "unsure" | "notYesNo" | "rude" | "sensitive";
 
 export const ANSWERS: Record<AnswerCategory, readonly string[]> = {
   yes: [
@@ -29,7 +29,15 @@ export const ANSWERS: Record<AnswerCategory, readonly string[]> = {
     "Hard to say",
     "Could go either way",
   ],
-  cannotAnswer: [
+  notYesNo: [
+    "Yes or no, please",
+    "I only do yes or no",
+    "That’s not a yes or no",
+    "Try a yes or no question",
+    "Rephrase that, mortal",
+    "I’m a ball, not an encyclopedia",
+  ],
+  rude: [
     "You’re asking me THAT?!",
     "Weird question, even for you",
     "Did you really just ask that?",
@@ -39,9 +47,25 @@ export const ANSWERS: Record<AnswerCategory, readonly string[]> = {
     "Who hurt you?",
     "That’s a you problem",
   ],
+  // Serious topics: a plain refusal, never a joke.
+  sensitive: [
+    "I can’t answer that",
+    "I can’t answer that one",
+    "That’s not one I can answer",
+    "I won’t answer that",
+    "Not a question for me",
+    "That’s beyond me",
+    "I can’t help with that",
+    "No answer for that one",
+    "I’ll pass on that one",
+    "Not mine to answer",
+  ],
 };
 
-const ALL_ANSWERS = Object.values(ANSWERS).flat();
+// Serious answers only make sense for a question that called for them.
+const ALL_ANSWERS = Object.entries(ANSWERS)
+  .filter(([category]) => category !== "sensitive")
+  .flatMap(([, answers]) => answers);
 
 export const ZOOM_QUIPS = [
   "Curious, aren't we?",
