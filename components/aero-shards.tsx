@@ -12,7 +12,7 @@ import {
   uniforms,
 } from "vgpu";
 import type { Frame } from "vgpu";
-import { useEffect, useRef, useState } from "react";
+import { type Ref, useEffect, useImperativeHandle, useRef, useState } from "react";
 
 const PLACEMENTS = { right: 0, left: 1, center: 2, full: 3 };
 const MATERIALS = { pearl: 0, chrome: 1, satin: 2 };
@@ -79,7 +79,13 @@ type Quality = keyof typeof QUALITY_PRESETS;
 type QualityPreset = (typeof QUALITY_PRESETS)[Quality];
 type FrameState = (typeof FRAME_STATES)[keyof typeof FRAME_STATES];
 
+export interface AeroShardsHandle {
+  /** Sends a ripple through the shards from `origin` (0-1 in the component's box, default centre). */
+  pulse: (origin?: [number, number], strength?: number) => void;
+}
+
 export interface AeroShardsProps {
+  ref?: Ref<AeroShardsHandle>;
   backgroundColor?: string;
   shardColor?: string;
   accentColor?: string;
@@ -221,12 +227,9 @@ const resolvePathLength = (aspect: number, weights: number[]) => {
   const side = 2.65 + 0.61 * aspect + 0.09 * aspect * aspect;
   const center = 2.3 + 2 * aspect + 0.35 * aspect * aspect;
   const full = Math.hypot(2.44 * aspect, Math.sqrt(5));
-  const mobile = Math.hypot(2.56 * aspect, 1);
-  return aspect < 0.82
-    ? mobile * (weights[0] + weights[1] + weights[2]) + full * weights[3]
-    : side * (weights[0] + weights[1]) +
-        center * weights[2] +
-        full * weights[3];
+  // The original swapped side/center placements for a bottom band on narrow
+  // screens; this project keeps the side path everywhere (see weightedPath).
+  return side * (weights[0] + weights[1]) + center * weights[2] + full * weights[3];
 };
 
 const createHold = (): HoldState => ({
@@ -471,18 +474,6 @@ fn centerArc(phase: f32) -> f32 {
   return mix(lookup[index], lookup[index + 1u], fract(scaled));
 }
 
-fn mobileArc(phase: f32) -> f32 {
-  let lookup = array<f32, 32>(
-    0.000000, 0.028885, 0.057970, 0.087431, 0.117400, 0.147935, 0.179017, 0.210560,
-    0.242467, 0.274689, 0.307272, 0.340367, 0.374193, 0.408970, 0.444794, 0.481483,
-    0.518517, 0.555206, 0.591030, 0.625807, 0.659633, 0.692728, 0.725311, 0.757533,
-    0.789440, 0.820983, 0.852065, 0.882600, 0.912569, 0.942030, 0.971115, 1.000000,
-  );
-  let scaled = clamp(phase, 0.0, 0.999999) * 31.0;
-  let index = min(u32(floor(scaled)), 30u);
-  return mix(lookup[index], lookup[index + 1u], fract(scaled));
-}
-
 fn sidePath(seedPhase: f32, distance: f32, aspect: f32, mirror: f32) -> PathSample {
   let pi = 3.14159265359;
   let pathLength = 2.65 + 0.61 * aspect + 0.09 * aspect * aspect;
@@ -559,28 +550,6 @@ fn fullPath(seedPhase: f32, distance: f32, aspect: f32) -> PathSample {
   return sample;
 }
 
-fn mobilePath(seedPhase: f32, distance: f32, aspect: f32) -> PathSample {
-  let pi = 3.14159265359;
-  let pathWidth = 2.56 * aspect;
-  let pathLength = sqrt(pathWidth * pathWidth + 1.0);
-  let phase = fract(seedPhase + distance / pathLength);
-  let t = mobileArc(phase);
-  let derivative = vec3f(
-    aspect * 2.56,
-    cos(t * pi) * pi * 0.28 + cos(t * pi * 3.0) * pi * 3.0 * 0.06,
-    -sin(t * pi * 2.0) * pi * 2.0 * 0.16,
-  );
-  var sample: PathSample;
-  sample.position = vec3f(
-    mix(-aspect * 1.28, aspect * 1.28, t),
-    -0.86 + sin(t * pi) * 0.28 + sin(t * pi * 3.0) * 0.06,
-    cos(t * pi * 2.0) * 0.16,
-  );
-  sample.tangent = safeNormalize(derivative);
-  sample.phase = phase;
-  return sample;
-}
-
 fn weightedPath(seedPhase: f32, phaseOffset: f32, aspect: f32, weights: vec4f) -> PathSample {
   // Every placement samples the same point along the stream, including its wrap seam.
   let phase = fract(seedPhase + phaseOffset);
@@ -589,39 +558,26 @@ fn weightedPath(seedPhase: f32, phaseOffset: f32, aspect: f32, weights: vec4f) -
   result.tangent = vec3f(0.0);
   result.phase = phase;
 
-  if (aspect < 0.82) {
-    let compactWeight = weights.x + weights.y + weights.z;
-    if (compactWeight > 0.0001) {
-      let compact = mobilePath(phase, 0.0, aspect);
-      result.position += compact.position * compactWeight;
-      result.tangent += compact.tangent * compactWeight;
-    }
-    if (weights.w > 0.0001) {
-      let wide = fullPath(phase, 0.0, aspect);
-      result.position += wide.position * weights.w;
-      result.tangent += wide.tangent * weights.w;
-    }
-  } else {
-    if (weights.x > 0.0001) {
-      let right = sidePath(phase, 0.0, aspect, 1.0);
-      result.position += right.position * weights.x;
-      result.tangent += right.tangent * weights.x;
-    }
-    if (weights.y > 0.0001) {
-      let left = sidePath(phase, 0.0, aspect, -1.0);
-      result.position += left.position * weights.y;
-      result.tangent += left.tangent * weights.y;
-    }
-    if (weights.z > 0.0001) {
-      let center = centerPath(phase, 0.0, aspect);
-      result.position += center.position * weights.z;
-      result.tangent += center.tangent * weights.z;
-    }
-    if (weights.w > 0.0001) {
-      let wide = fullPath(phase, 0.0, aspect);
-      result.position += wide.position * weights.w;
-      result.tangent += wide.tangent * weights.w;
-    }
+  // Side placements keep their curved path on narrow screens too (the original switched to a bottom band).
+  if (weights.x > 0.0001) {
+    let right = sidePath(phase, 0.0, aspect, 1.0);
+    result.position += right.position * weights.x;
+    result.tangent += right.tangent * weights.x;
+  }
+  if (weights.y > 0.0001) {
+    let left = sidePath(phase, 0.0, aspect, -1.0);
+    result.position += left.position * weights.y;
+    result.tangent += left.tangent * weights.y;
+  }
+  if (weights.z > 0.0001) {
+    let center = centerPath(phase, 0.0, aspect);
+    result.position += center.position * weights.z;
+    result.tangent += center.tangent * weights.z;
+  }
+  if (weights.w > 0.0001) {
+    let wide = fullPath(phase, 0.0, aspect);
+    result.position += wide.position * weights.w;
+    result.tangent += wide.tangent * weights.w;
   }
 
   result.tangent = safeNormalize(result.tangent + vec3f(0.0001, 0.0, 0.0));
@@ -1493,6 +1449,7 @@ const prepareRenderGraph = async (
 };
 
 export default function AeroShards({
+  ref,
   backgroundColor = "#120F17",
   shardColor = "#896ABD",
   accentColor = "#A855F7",
@@ -1540,6 +1497,20 @@ export default function AeroShards({
     initialized: false,
   });
   const ripplesRef = useRef<RippleState[]>(createRipples());
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      pulse: (origin = [0.5, 0.5], strength = 1) => {
+        const root = rootRef.current;
+        if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const { width, height } = root.getBoundingClientRect();
+        startRipple(ripplesRef.current, origin, width / Math.max(height, 1), strength);
+        wakeRef.current();
+      },
+    }),
+    [],
+  );
   const holdRef = useRef(createHold());
   const [ready, setReady] = useState(false);
 
@@ -1918,6 +1889,8 @@ export default function AeroShards({
         let lastPresentationTimestamp = 0;
         let nextPresentationTimestamp = 0;
         let flowDistance = 0;
+        // Eases towards settings.speed so speed changes slow down or speed up the flow instead of jumping.
+        let flowSpeed = settingsRef.current!.speed;
         let travelPhase = 0;
         let grainTime = 0;
         let firstFrame = true;
@@ -2050,7 +2023,8 @@ export default function AeroShards({
           needsRender = false;
 
           if (!frozen) {
-            flowDistance += elapsed * settings.speed * 0.34;
+            flowSpeed += (settings.speed - flowSpeed) * (1 - Math.exp(-elapsed * 2.5));
+            flowDistance += elapsed * flowSpeed * 0.34;
             grainTime += elapsed;
           }
           if (frozen) {
@@ -2073,7 +2047,7 @@ export default function AeroShards({
             const travelAspect = output.size[0] / Math.max(output.size[1], 1);
             travelPhase =
               (travelPhase +
-                (elapsed * settings.speed * 0.34) /
+                (elapsed * flowSpeed * 0.34) /
                   resolvePathLength(travelAspect, layoutWeights)) %
               1;
           }
@@ -2105,11 +2079,9 @@ export default function AeroShards({
             advancePointer(pointer, elapsed);
           }
 
-          advanceRipples(
-            ripplesRef.current,
-            elapsed,
-            frozen || settings.interaction === INTERACTIONS.none,
-          );
+          // User ripples are already blocked by the pointer handlers when
+          // interaction is "none"; ripples from pulse() still play.
+          advanceRipples(ripplesRef.current, elapsed, frozen);
 
           const runtimeQuality = RUNTIME_QUALITY[runtimeQualityLevel];
           const activeCount = Math.max(
