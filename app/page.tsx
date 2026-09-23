@@ -245,7 +245,15 @@ export default function Home() {
 
         {!keyboard && (
           <p className="pointer-events-none absolute right-[max(1rem,env(safe-area-inset-right))] bottom-[max(0.75rem,env(safe-area-inset-bottom))] text-[9px] tracking-[0.2em] text-violet-200/30 uppercase select-none">
-            Powered by Jev
+            Powered by Jev ·{" "}
+            <a
+              href="https://github.com/raulmouzo/magic-8"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pointer-events-auto transition hover:text-violet-200/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300"
+            >
+              GitHub
+            </a>
           </p>
         )}
       </main>
