@@ -4,14 +4,17 @@ An interactive Magic 8-Ball built with Next.js and three.js. Ask a question
 (button or tap on the ball) and an answer rises out of the liquid, while the
 animated shard background reacts to what the ball is doing.
 
-## Getting started
 
-```bash
-pnpm install
-pnpm dev
-```
+## Features
 
-Then open [http://localhost:3000](http://localhost:3000).
+- **Ask a question** — type it in the prompt bar, shake your phone (on
+  supported devices) or tap the ball.
+- **Smart answers** — Jev classifies your question and picks a fitting
+  answer; an empty or failed question gets a classic "unsure" response.
+- **Question log** — the current question floats above the ball, then the
+  three most recent answers stay on screen for reference.
+- **Installable** — add it to your home screen; it runs full-screen with an
+  app icon and web app manifest.
 
 ## Credits
 
