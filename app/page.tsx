@@ -12,6 +12,7 @@ import {
 } from "@/components/magic-eight-ball/MagicEightBall";
 import { MotionPermissionPrompt, useMotionPromptSeen } from "@/components/motion-permission-prompt";
 import { PromptBar } from "@/components/prompt-bar";
+import { useKeyboardViewport } from "@/components/use-keyboard-viewport";
 
 // AeroShards speed: default 1, max 2.
 const IDLE_SPEED = 0.3;
@@ -24,10 +25,23 @@ const BACKGROUND_TIMEOUT_MS = 3000;
 type Screen = "mobile" | "tablet" | "desktop";
 
 // Big spinning shards read as the whole background rotating, so narrow
-// screens turn spin off. Phones also use fewer, larger shards.
+// screens turn spin off.
 const BACKGROUND: Record<Screen, Partial<AeroShardsProps>> = {
-  // Laid out landscape and turned 90° on phones (see the wrapper below).
-  mobile: { placement: "full", spin: 0, scale: 1.6, density: 0.5, detail: "bold" },
+  // A minimal band across the top of the screen (see the wrapper below),
+  // as cheap as it gets: a small canvas at 1x and 30 fps, few large shards,
+  // and none of the post effects.
+  mobile: {
+    placement: "full",
+    spin: 0,
+    scale: 3,
+    density: 0.25,
+    detail: "bold",
+    bloom: 0,
+    grain: 0,
+    chromaticAberration: 0,
+    maxDpr: 1,
+    maxFps: 30,
+  },
   tablet: { placement: "left", spin: 0, scale: 1.2 },
   desktop: { placement: "full" },
 };
@@ -55,6 +69,18 @@ export default function Home() {
   const [thinking, setThinking] = useState(false);
   const [buttonHighlighted, setButtonHighlighted] = useState(false);
   const [backgroundReady, setBackgroundReady] = useState(false);
+  // With the on-screen keyboard open, the scene shrinks into what's left
+  // above it and the ball sits in the space above the controls.
+  const keyboard = useKeyboardViewport();
+  const controlsRef = useRef<HTMLDivElement>(null);
+  const [controlsHeight, setControlsHeight] = useState(0);
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+    const observer = new ResizeObserver(() => setControlsHeight(controls.offsetHeight));
+    observer.observe(controls);
+    return () => observer.disconnect();
+  }, []);
   const handleBackgroundReady = useCallback(() => setBackgroundReady(true), []);
 
   // On touch screens, shaking the phone asks (once motion access is granted).
@@ -75,9 +101,10 @@ export default function Home() {
 
   // The background only reacts to the ball, never to the user directly.
   const handleAsk = useCallback(() => {
-    shardsRef.current?.pulse([0.5, 0.5], PULSE_STRENGTH);
+    // From the ball: the middle of the screen, or just below the phone band.
+    shardsRef.current?.pulse(screen === "mobile" ? [0.5, 1] : [0.5, 0.5], PULSE_STRENGTH);
     setThinking(true);
-  }, []);
+  }, [screen]);
   const handleRest = useCallback(() => setThinking(false), []);
 
   // Jev picks the answer category. An empty question gets a random answer;
@@ -103,10 +130,10 @@ export default function Home() {
   return (
     <>
       {/* lvh keeps the background's size fixed while mobile browser bars come
-          and go. On phones it is laid out landscape and turned 90°, so the
-          shards stream along the long side. */}
+          and go. On phones it's a band across the top that fades out
+          towards the ball. */}
       <div className="fixed inset-x-0 top-0 -z-10 h-lvh overflow-hidden">
-        <div className="absolute inset-0 max-md:inset-auto max-md:top-1/2 max-md:left-1/2 max-md:h-[100vw] max-md:w-lvh max-md:-translate-1/2 max-md:rotate-90">
+        <div className="absolute inset-0 max-md:bottom-auto max-md:h-[32lvh] max-md:[mask-image:linear-gradient(to_bottom,black_40%,transparent)]">
           <AeroShards
             ref={shardsRef}
             interaction="none"
@@ -117,17 +144,41 @@ export default function Home() {
           />
         </div>
       </div>
-      <main className="relative h-dvh w-full overflow-hidden">
-        <MagicEightBall
-          ref={ballRef}
-          canStart={backgroundReady}
-          buttonHighlighted={buttonHighlighted && !busy}
-          onBusyChange={setBusy}
-          onAsk={handleAsk}
-          onRest={handleRest}
-        />
+      {/* Fixed to the visible area while the keyboard is open: offsetTop
+          undoes the pan Safari applies to bring the text box into view. */}
+      <main
+        className="relative h-dvh w-full overflow-hidden"
+        style={
+          keyboard
+            ? {
+                position: "fixed",
+                inset: "0 0 auto 0",
+                height: keyboard.height,
+                transform: `translateY(${keyboard.offsetTop}px)`,
+              }
+            : undefined
+        }
+      >
+        <div
+          className="absolute inset-0"
+          style={keyboard ? { bottom: controlsHeight } : undefined}
+        >
+          <MagicEightBall
+            ref={ballRef}
+            canStart={backgroundReady}
+            buttonHighlighted={buttonHighlighted && !busy}
+            onBusyChange={setBusy}
+            onAsk={handleAsk}
+            onRest={handleRest}
+          />
+        </div>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 px-4 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))] md:px-8">
+        {/* The keyboard covers the safe area, so less padding while it's open. */}
+        <div
+          ref={controlsRef}
+          className="group pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 px-[max(1rem,env(safe-area-inset-left),env(safe-area-inset-right))] pt-8 pb-[max(2rem,env(safe-area-inset-bottom))] data-keyboard:pt-2 data-keyboard:pb-3 md:px-8"
+          data-keyboard={keyboard ? true : undefined}
+        >
           <div className="pointer-events-auto w-full max-w-sm">
             <PromptBar
               value={question}
@@ -139,7 +190,7 @@ export default function Home() {
               onHighlightChange={setButtonHighlighted}
             />
           </div>
-          <p className="text-xs tracking-[0.2em] text-violet-200/50 uppercase select-none">
+          <p className="text-xs tracking-[0.2em] text-violet-200/50 uppercase select-none group-data-keyboard:hidden">
             {canShake ? "or shake your phone" : "or tap it"}
           </p>
         </div>

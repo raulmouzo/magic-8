@@ -30,8 +30,9 @@ type Props = BallEvents & {
 };
 
 // Share of the viewport's shorter side taken by the ball, halo included.
+// On phones the ball already fills the width, so it comes only a little closer to answer.
 const VIEWPORT_FILL = {
-  mobile: { rest: 0.85, approach: 1.3, zoom: 1.4 },
+  mobile: { rest: 0.85, approach: 1.1, zoom: 1.4 },
   tablet: { rest: 0.6, approach: 0.85, zoom: 1.05 },
   desktop: { rest: 0.45, approach: 0.58, zoom: 0.82 },
 };

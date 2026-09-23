@@ -115,6 +115,10 @@ export interface AeroShardsProps {
   interactionRadius?: number;
   interactionStrength?: number;
   paused?: boolean;
+  /** Caps the frame rate, e.g. 30 to halve the GPU work on phones. */
+  maxFps?: number;
+  /** Caps the device pixel ratio the canvas renders at. */
+  maxDpr?: number;
   className?: string;
   onError?: (error: Error) => void;
   /** Called once the first frame is on screen. */
@@ -155,6 +159,8 @@ interface AeroSettings {
   interactionRadius: number;
   interactionStrength: number;
   paused: boolean;
+  maxFps: number;
+  maxDpr: number;
   signature: string;
 }
 
@@ -1219,13 +1225,14 @@ const resolveQuality = (canvas: HTMLCanvasElement): Quality => {
 const resolveDpr = (
   preset: QualityPreset,
   canvas: HTMLCanvasElement,
+  maxDpr = Infinity,
 ): number => {
   const cssPixels = Math.max(1, canvas.clientWidth * canvas.clientHeight);
   // The budget limits supersampling, never the one-pixel-per-CSS-pixel base image.
   const budgetDpr = Math.sqrt(preset.supersamplePixels / cssPixels);
   return Math.max(
     1,
-    Math.min(window.devicePixelRatio || 1, preset.dpr, budgetDpr),
+    Math.min(window.devicePixelRatio || 1, preset.dpr, budgetDpr, maxDpr),
   );
 };
 
@@ -1481,6 +1488,8 @@ export default function AeroShards({
   rippleIntensity = 1,
   holdToGather = true,
   paused = false,
+  maxFps = Infinity,
+  maxDpr = Infinity,
   className = "",
   onError,
   onReady,
@@ -1593,6 +1602,8 @@ export default function AeroShards({
     rippleIntensity: clamp(rippleIntensity, 0, 2),
     holdToGather,
     paused,
+    maxFps,
+    maxDpr,
     signature: [
       backgroundColor,
       shardColor,
@@ -1877,7 +1888,7 @@ export default function AeroShards({
           }
         ).gpu.getPreferredCanvasFormat();
         const output = surface(gpu, canvas, {
-          dpr: resolveDpr(preset, canvas),
+          dpr: resolveDpr(preset, canvas, settingsRef.current!.maxDpr),
           autoResize: false,
           format: outputFormat,
         });
@@ -1961,7 +1972,7 @@ export default function AeroShards({
 
         const resizeOutput = () => {
           updateBounds();
-          const dpr = resolveDpr(preset, canvas);
+          const dpr = resolveDpr(preset, canvas, settingsRef.current!.maxDpr);
           const nextSize: [number, number] = [
             Math.max(1, Math.round(canvas.clientWidth * dpr)),
             Math.max(1, Math.round(canvas.clientHeight * dpr)),
@@ -2343,9 +2354,9 @@ export default function AeroShards({
           const forceFrame =
             firstFrame || settingsChanged || !lastPresentationTimestamp;
           const frameState = resolveFrameState(performance.now());
-          const presentationInterval = resolveFrameInterval(
-            frameState,
-            refreshInterval,
+          const presentationInterval = Math.max(
+            resolveFrameInterval(frameState, refreshInterval),
+            1000 / settings.maxFps,
           );
           const cadenceDeadline =
             lastPresentationTimestamp + presentationInterval;

@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
+/* The app is dark only: light mode would flash white in overscroll and
+   around the on-screen keyboard. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #120f17;
+  --foreground: #ededed;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -12,15 +15,20 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* On html only: a body background would paint over the fixed -z-10
+   background (AeroShards) instead of behind it. */
+html {
+  background: var(--background);
+}
+
+html,
+body {
+  /* No rubber-band scrolling on a page that doesn't scroll. */
+  overscroll-behavior: none;
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }

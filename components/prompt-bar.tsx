@@ -55,19 +55,43 @@ export function PromptBar({
   }, [value]);
 
   const send = () => {
-    if (!disabled) onSend();
+    if (disabled) return;
+    onSend();
+    // On touch screens, put the keyboard away so the ball's answer shows.
+    if (window.matchMedia("(pointer: coarse)").matches) {
+      inputRef.current?.blur();
+    }
   };
 
+  // A question is one line: Enter (or the keyboard's Send key) sends it.
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (
-      event.key === "Enter" &&
-      !event.shiftKey &&
-      !event.nativeEvent.isComposing
-    ) {
+    if (event.key === "Enter" && !event.nativeEvent.isComposing) {
       event.preventDefault();
       send();
     }
   };
+
+  // Some Android keyboards skip the Enter keydown and insert a line break
+  // directly; catch that too. `send` changes every render, so go through a ref.
+  const sendRef = useRef(send);
+  useEffect(() => {
+    sendRef.current = send;
+  });
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    const handleBeforeInput = (event: InputEvent) => {
+      if (
+        event.inputType === "insertLineBreak" ||
+        event.inputType === "insertParagraph"
+      ) {
+        event.preventDefault();
+        sendRef.current();
+      }
+    };
+    input.addEventListener("beforeinput", handleBeforeInput);
+    return () => input.removeEventListener("beforeinput", handleBeforeInput);
+  }, []);
 
   return (
     <div
@@ -87,8 +111,10 @@ export function PromptBar({
         ref={inputRef}
         rows={1}
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        // Pasted line breaks become spaces.
+        onChange={(event) => onChange(event.target.value.replace(/\s*\n\s*/g, " "))}
         onKeyDown={handleKeyDown}
+        enterKeyHint="send"
         maxLength={maxLength}
         placeholder={placeholder}
         aria-label="Your question"
@@ -100,7 +126,11 @@ export function PromptBar({
       {/* With nothing typed it reads "Or go random"; the label folds away on typing. */}
       <button
         type="button"
-        onClick={send}
+        onClick={(event) => {
+          // The bar's own click would focus the text box and reopen the keyboard.
+          event.stopPropagation();
+          send();
+        }}
         disabled={disabled}
         aria-label={empty ? "Or go random" : "Ask the ball"}
         data-empty={empty || undefined}
