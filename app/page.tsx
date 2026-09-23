@@ -242,6 +242,12 @@ export default function Home() {
             {canShake ? "or shake your phone" : "or tap it"}
           </p>
         </div>
+
+        {!keyboard && (
+          <p className="pointer-events-none absolute right-[max(1rem,env(safe-area-inset-right))] bottom-[max(0.75rem,env(safe-area-inset-bottom))] text-[9px] tracking-[0.2em] text-violet-200/30 uppercase select-none">
+            Powered by Jev
+          </p>
+        )}
       </main>
 
       {showMotionPrompt && <MotionPermissionPrompt onAccept={motion.requestAccess} />}
