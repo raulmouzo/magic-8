@@ -3,9 +3,10 @@
 
 import { useCursor } from "@react-three/drei";
 import { type ThreeEvent, useFrame, useThree } from "@react-three/fiber";
-import { type Ref, useEffect, useImperativeHandle, useState } from "react";
+import { type Ref, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { MathUtils, type PerspectiveCamera } from "three";
 import { loadWindowFont } from "./answers";
+import { useDeviceTilt, useIsTouch } from "./motion";
 import { BALL_RADIUS } from "./geometry";
 import {
   type AnswerPicker,
@@ -21,6 +22,8 @@ export type BallHandle = {
 
 type Props = BallEvents & {
   ref?: Ref<BallHandle>;
+  /** Hold the entrance until true, e.g. until the background has faded in. */
+  canStart?: boolean;
   buttonHighlighted?: boolean;
   pickAnswer?: AnswerPicker;
   onBusyChange?: (busy: boolean) => void;
@@ -65,6 +68,7 @@ function fitCamera(
 
 export function Ball({
   ref,
+  canStart = true,
   buttonHighlighted = false,
   pickAnswer,
   onBusyChange,
@@ -73,7 +77,17 @@ export function Ball({
   onRest,
 }: Props) {
   const camera = useThree((state) => state.camera);
-  const canvas = useThree((state) => state.gl.domElement);
+  const gl = useThree((state) => state.gl);
+  const canvas = gl.domElement;
+  const threeScene = useThree((state) => state.scene);
+  const [compiled, setCompiled] = useState(false);
+  const [fontLoaded, setFontLoaded] = useState(false);
+  const compileStarted = useRef(false);
+  const ready = compiled && fontLoaded;
+  // Touch screens have no hover: the ball leans with the phone instead of the pointer.
+  const touch = useIsTouch();
+  const deviceTilt = useRef({ x: 0, y: 0 });
+  useDeviceTilt(deviceTilt, touch);
   const size = useThree((state) => state.size);
   const [scene] = useState(() => new MagicEightBallScene());
   const [hovered, setHovered] = useState(false);
@@ -100,22 +114,45 @@ export function Ball({
 
   useEffect(() => {
     let cancelled = false;
-    loadWindowFont().then(() => {
-      if (!cancelled) scene.refreshText();
-    });
+    loadWindowFont()
+      .catch(() => {}) // fall back to whatever font is available
+      .then(() => {
+        if (cancelled) return;
+        scene.refreshText();
+        setFontLoaded(true);
+      });
     return () => {
       cancelled = true;
     };
   }, [scene]);
 
+  // Compile the ball's shaders in the background, as if it were already in the
+  // scene (same lights and environment), so it never stalls a frame on screen.
+  // The environment map changes the shaders, so wait until it exists.
+  useFrame(({ camera: frameCamera }) => {
+    if (compileStarted.current || !threeScene.environment) return;
+    compileStarted.current = true;
+    gl.compileAsync(scene.root, frameCamera, threeScene)
+      .catch(() => {}) // worst case it compiles on first render instead
+      .then(() => setCompiled(true));
+  });
+
+  const started = ready && canStart;
+  useEffect(() => {
+    if (started) scene.start();
+  }, [started, scene]);
+
   useEffect(() => {
     const travel = fitCamera(camera as PerspectiveCamera, size.width, size.height);
     scene.setApproachDistance(travel.approach);
     scene.setZoomDistance(travel.zoom);
+    scene.setVerticalShards(size.width < TABLET_MIN_WIDTH);
   }, [camera, scene, size]);
 
   // Back to centre when the pointer leaves the window or the window loses focus.
   useEffect(() => {
+    scene.setPointerPresent(true);
+    if (touch) return;
     const handleMove = () => scene.setPointerPresent(true);
     const handleOut = (event: PointerEvent) => {
       if (!event.relatedTarget) scene.setPointerPresent(false);
@@ -129,7 +166,7 @@ export function Ball({
       window.removeEventListener("pointerout", handleOut);
       window.removeEventListener("blur", handleBlur);
     };
-  }, [scene]);
+  }, [scene, touch]);
 
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
@@ -142,7 +179,9 @@ export function Ball({
 
   useImperativeHandle(ref, () => ({ ask: (request) => scene.ask(request) }), [scene]);
 
-  useFrame(({ clock, pointer }, delta) => scene.update(clock.elapsedTime, delta, pointer));
+  useFrame(({ clock, pointer }, delta) =>
+    scene.update(clock.elapsedTime, delta, touch ? deviceTilt.current : pointer),
+  );
 
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
@@ -151,12 +190,14 @@ export function Ball({
 
   return (
     <>
-      <primitive
-        object={scene.root}
-        onClick={handleClick}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-      />
+      {started && (
+        <primitive
+          object={scene.root}
+          onClick={handleClick}
+          onPointerOver={() => setHovered(true)}
+          onPointerOut={() => setHovered(false)}
+        />
+      )}
       <primitive object={scene.lights} />
     </>
   );

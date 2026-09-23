@@ -15,11 +15,14 @@ import type { AnswerPicker, BallEvents } from "./MagicEightBallScene";
 
 export type { BallHandle as MagicEightBallHandle };
 export { ANSWERS, type AnswerCategory, randomAnswer } from "./answers";
+export { useIsTouch, useMotionAccess, useShake } from "./motion";
 
 type Props = BallEvents & {
   /** Imperative API: `ref.current.ask()`, `ref.current.ask({ category: "no" })` or `ref.current.ask("Yes")`. */
   ref?: Ref<BallHandle>;
   buttonHighlighted?: boolean;
+  /** Hold the entrance until true, e.g. until the background has faded in. */
+  canStart?: boolean;
   /** Used when `ask` gets no answer, including clicks on the ball. */
   pickAnswer?: AnswerPicker;
   /** Called with true while an animation runs and `ask` is ignored. */

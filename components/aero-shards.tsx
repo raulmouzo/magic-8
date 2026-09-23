@@ -117,6 +117,8 @@ export interface AeroShardsProps {
   paused?: boolean;
   className?: string;
   onError?: (error: Error) => void;
+  /** Called once the first frame is on screen. */
+  onReady?: () => void;
 }
 
 interface AeroSettings {
@@ -1481,6 +1483,7 @@ export default function AeroShards({
   paused = false,
   className = "",
   onError,
+  onReady,
 }: AeroShardsProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -1624,6 +1627,8 @@ export default function AeroShards({
   };
   const settingsSignature = settingsRef.current.signature;
   onErrorRef.current = onError;
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
 
   useEffect(() => {
     wakeRef.current();
@@ -2268,7 +2273,9 @@ export default function AeroShards({
           if (firstFrame) {
             firstFrame = false;
             requestAnimationFrame(() => {
-              if (!disposed) setReady(true);
+              if (disposed) return;
+              setReady(true);
+              onReadyRef.current?.();
             });
           }
         };

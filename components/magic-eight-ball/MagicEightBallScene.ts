@@ -111,6 +111,7 @@ export class MagicEightBallScene {
   private readonly facing = { value: 0 };
   private buttonHighlighted = false;
   private pointerPresent = true;
+  private verticalShards = false;
   private approachDistance = BALL_RADIUS * 2;
   /** Scroll zoom amount in 0–1; zoomDistance is how far 1 moves the ball. */
   private zoomDistance = BALL_RADIUS * 3;
@@ -129,7 +130,8 @@ export class MagicEightBallScene {
   private textTexture: CanvasTexture | null = null;
   private pickAnswer: AnswerPicker = () => randomAnswer();
   private timeline: Timeline | null = null;
-  private busy = false;
+  // Busy until start(), so nothing can be asked before the ball is on screen.
+  private busy = true;
   private busyListener: BusyListener | null = null;
 
   constructor() {
@@ -149,6 +151,10 @@ export class MagicEightBallScene {
     this.lights.add(this.keyLight, ...this.shardLights);
 
     this.setText(createSigilTexture);
+  }
+
+  /** Plays the entrance; call once the ball is in the scene and ready to render. */
+  start(): void {
     this.play(
       [
         { target: this.appear, from: 0, to: 1, start: 0, duration: 1400 },
@@ -173,6 +179,11 @@ export class MagicEightBallScene {
 
   zoomBy(amount: number): void {
     this.zoomTarget = MathUtils.clamp(this.zoomTarget + amount, 0, 1);
+  }
+
+  /** On phones the background is turned 90°, so the lights behind the ball go top to bottom. */
+  setVerticalShards(vertical: boolean): void {
+    this.verticalShards = vertical;
   }
 
   setPointerPresent(present: boolean): void {
@@ -309,11 +320,11 @@ export class MagicEightBallScene {
     this.shardLights.forEach((light, i) => {
       const { intensity, speed, y, z, phase } = SHARD_LIGHTS[i];
       const pass = (phase + (elapsedSeconds * speed) / (2 * SHARD_SWEEP)) % 1;
-      light.position.set(
-        MathUtils.lerp(-SHARD_SWEEP, SHARD_SWEEP, pass),
-        y + Math.sin(elapsedSeconds * 0.6 + phase * 6) * 0.4,
-        z,
-      );
+      const along = MathUtils.lerp(-SHARD_SWEEP, SHARD_SWEEP, pass);
+      const across = y + Math.sin(elapsedSeconds * 0.6 + phase * 6) * 0.4;
+      // A 90° clockwise turn maps left→right onto top→bottom.
+      if (this.verticalShards) light.position.set(-across, -along, z);
+      else light.position.set(along, across, z);
       light.intensity = intensity * Math.sin(Math.PI * pass) ** 2 * this.appear.value;
     });
   }
