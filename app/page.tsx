@@ -92,7 +92,6 @@ export default function Home() {
   const canShake = touch && motion.access === "granted";
   const showMotionPrompt =
     motion.needsPermission && motion.access === "pending" && !promptSeen && backgroundReady;
-  useShake(useCallback(() => ballRef.current?.ask(), []), canShake);
 
   useEffect(() => {
     const timeout = setTimeout(handleBackgroundReady, BACKGROUND_TIMEOUT_MS);
@@ -112,6 +111,8 @@ export default function Home() {
   const [question, setQuestion] = useState("");
   const [classifying, setClassifying] = useState(false);
   const handleSend = async () => {
+    // Shaking and tapping the ball get here too, past the disabled button.
+    if (busy || classifying) return;
     if (!question.trim()) {
       ballRef.current?.ask();
       return;
@@ -126,6 +127,8 @@ export default function Home() {
       setThinking(false);
     }
   };
+  // Shaking the phone or tapping the ball asks what's typed, like sending.
+  useShake(handleSend, canShake);
 
   return (
     <>
@@ -170,6 +173,7 @@ export default function Home() {
             onBusyChange={setBusy}
             onAsk={handleAsk}
             onRest={handleRest}
+            onBallClick={handleSend}
           />
         </div>
 

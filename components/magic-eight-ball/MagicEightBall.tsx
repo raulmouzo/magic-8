@@ -27,6 +27,8 @@ type Props = BallEvents & {
   pickAnswer?: AnswerPicker;
   /** Called with true while an animation runs and `ask` is ignored. */
   onBusyChange?: (busy: boolean) => void;
+  /** Replaces the default of asking with `pickAnswer` when the ball is clicked. */
+  onBallClick?: () => void;
   className?: string;
 };
 

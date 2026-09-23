@@ -27,6 +27,8 @@ type Props = BallEvents & {
   buttonHighlighted?: boolean;
   pickAnswer?: AnswerPicker;
   onBusyChange?: (busy: boolean) => void;
+  /** Replaces the default of asking with `pickAnswer` when the ball is clicked. */
+  onBallClick?: () => void;
 };
 
 // Share of the viewport's shorter side taken by the ball, halo included.
@@ -73,6 +75,7 @@ export function Ball({
   buttonHighlighted = false,
   pickAnswer,
   onBusyChange,
+  onBallClick,
   onAsk,
   onReveal,
   onRest,
@@ -186,7 +189,8 @@ export function Ball({
 
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
-    scene.ask();
+    if (onBallClick) onBallClick();
+    else scene.ask();
   };
 
   return (
