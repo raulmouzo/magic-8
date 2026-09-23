@@ -41,3 +41,8 @@ yarn-error.log*
 next-env.d.ts
 
 certificates
+
+# agent skills (installed locally)
+.agents/
+.claude/skills/
+skills-lock.json
