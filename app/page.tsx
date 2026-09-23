@@ -12,6 +12,7 @@ import {
 } from "@/components/magic-eight-ball/MagicEightBall";
 import { MotionPermissionPrompt, useMotionPromptSeen } from "@/components/motion-permission-prompt";
 import { PromptBar } from "@/components/prompt-bar";
+import { type LogEntry, QuestionLog } from "@/components/question-log";
 import { useKeyboardViewport } from "@/components/use-keyboard-viewport";
 
 // AeroShards speed: default 1, max 2.
@@ -21,6 +22,10 @@ const THINKING_SPEED = 1.6;
 const PULSE_STRENGTH = 0.8;
 // The ball enters after the background; don't wait longer than this for it.
 const BACKGROUND_TIMEOUT_MS = 3000;
+// How long the question stays up after the ball settles, and how many past
+// answers are kept.
+const ARCHIVE_DELAY_MS = 800;
+const HISTORY_SIZE = 3;
 
 type Screen = "mobile" | "tablet" | "desktop";
 
@@ -104,7 +109,36 @@ export default function Home() {
     shardsRef.current?.pulse(screen === "mobile" ? [0.5, 1] : [0.5, 0.5], PULSE_STRENGTH);
     setThinking(true);
   }, [screen]);
-  const handleRest = useCallback(() => setThinking(false), []);
+
+  // The question in progress, shown above the ball until a little after the
+  // answer; then it joins the recent answers. Mirrored in a ref for the
+  // ball's callbacks.
+  const [current, setCurrent] = useState<LogEntry | null>(null);
+  const [history, setHistory] = useState<LogEntry[]>([]);
+  const currentRef = useRef<LogEntry | null>(null);
+  const nextId = useRef(0);
+  const archiveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const setCurrentEntry = useCallback((entry: LogEntry | null) => {
+    currentRef.current = entry;
+    setCurrent(entry);
+  }, []);
+  const archive = useCallback(() => {
+    clearTimeout(archiveTimer.current);
+    const done = currentRef.current;
+    if (done?.answer) setHistory((entries) => [done, ...entries].slice(0, HISTORY_SIZE));
+    setCurrentEntry(null);
+  }, [setCurrentEntry]);
+  useEffect(() => () => clearTimeout(archiveTimer.current), []);
+
+  const handleReveal = useCallback(
+    (answer: string) =>
+      setCurrentEntry({ ...(currentRef.current ?? { id: nextId.current++, question: null }), answer }),
+    [setCurrentEntry],
+  );
+  const handleRest = useCallback(() => {
+    setThinking(false);
+    archiveTimer.current = setTimeout(archive, ARCHIVE_DELAY_MS);
+  }, [archive]);
 
   // Jev picks the answer category. An empty question gets a random answer;
   // a failed call gets an "unsure" one, never a joke that could land badly.
@@ -113,17 +147,22 @@ export default function Home() {
   const handleSend = async () => {
     // Shaking and tapping the ball get here too, past the disabled button.
     if (busy || classifying) return;
-    if (!question.trim()) {
-      ballRef.current?.ask();
+    // A new question moves the last one into the history straight away.
+    archive();
+    const entry: LogEntry = { id: nextId.current++, question: question.trim() || null };
+    if (!entry.question) {
+      if (ballRef.current?.ask()) setCurrentEntry(entry);
       return;
     }
+    setCurrentEntry(entry);
     setClassifying(true);
     setThinking(true);
-    const category = await classifyQuestion(question).catch(() => null);
+    const category = await classifyQuestion(entry.question).catch(() => null);
     setClassifying(false);
     if (ballRef.current?.ask({ category: category ?? "unsure" })) {
       setQuestion("");
     } else {
+      setCurrentEntry(null);
       setThinking(false);
     }
   };
@@ -172,9 +211,14 @@ export default function Home() {
             buttonHighlighted={buttonHighlighted && !busy}
             onBusyChange={setBusy}
             onAsk={handleAsk}
+            onReveal={handleReveal}
             onRest={handleRest}
             onBallClick={handleSend}
           />
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center px-[max(1rem,env(safe-area-inset-left),env(safe-area-inset-right))] pt-[max(1.5rem,env(safe-area-inset-top))] md:px-8 md:pt-10">
+          <QuestionLog current={current} history={history} compact={Boolean(keyboard)} />
         </div>
 
         {/* The keyboard covers the safe area, so less padding while it's open. */}
