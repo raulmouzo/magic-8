@@ -62,9 +62,11 @@ export const ANSWERS: Record<AnswerCategory, readonly string[]> = {
   ],
 };
 
-// Serious answers only make sense for a question that called for them.
+// Some answers only make sense for a question that called for them: the
+// serious refusals, and the complaints about not being a yes/no question.
+const NOT_RANDOM: readonly AnswerCategory[] = ["sensitive", "notYesNo"];
 const ALL_ANSWERS = Object.entries(ANSWERS)
-  .filter(([category]) => category !== "sensitive")
+  .filter(([category]) => !NOT_RANDOM.includes(category as AnswerCategory))
   .flatMap(([, answers]) => answers);
 
 export const ZOOM_QUIPS = [
