@@ -31,6 +31,7 @@ const isCategory = (value: unknown): value is AnswerCategory =>
 /** Picks the answer category for a question with Jev, or null if it can't. */
 export async function classifyQuestion(question: string): Promise<AnswerCategory | null> {
   // Reachable by direct POST, so the argument may not be a string.
+  console.log("[m8] classifyQuestion", { question, hasKey: Boolean(process.env.AI_GATEWAY_API_KEY) });
   if (typeof question !== "string") return null;
   const state = question.trim().slice(0, MAX_QUESTION_LENGTH);
   const apiKey = process.env.AI_GATEWAY_API_KEY;
@@ -52,11 +53,12 @@ export async function classifyQuestion(question: string): Promise<AnswerCategory
     }),
   });
   if (!response.ok) {
-    console.error(`Jev evaluation failed with ${response.status}`);
+    console.error(`Jev evaluation failed with ${response.status}`, await response.text());
     return null;
   }
 
   const { answers }: EvaluateResponse = await response.json();
+  console.log("[m8] Jev answers", JSON.stringify(answers));
   const { choice, probabilities } = answers?.category ?? {};
   if ((probabilities?.sensitive ?? 0) >= SENSITIVE_THRESHOLD) return "sensitive";
   return isCategory(choice) ? choice : null;

@@ -146,6 +146,7 @@ export default function Home() {
   const [classifying, setClassifying] = useState(false);
   const handleSend = async () => {
     // Shaking and tapping the ball get here too, past the disabled button.
+    console.log("[m8] send", { busy, classifying, question });
     if (busy || classifying) return;
     // A new question moves the last one into the history straight away.
     archive();
@@ -157,7 +158,12 @@ export default function Home() {
     setCurrentEntry(entry);
     setClassifying(true);
     setThinking(true);
-    const category = await classifyQuestion(entry.question).catch(() => null);
+    console.log("[m8] calling classifyQuestion");
+    const category = await classifyQuestion(entry.question).catch((error) => {
+      console.error("[m8] classifyQuestion failed", error);
+      return null;
+    });
+    console.log("[m8] category", category);
     setClassifying(false);
     if (ballRef.current?.ask({ category: category ?? "unsure" })) {
       setQuestion("");
