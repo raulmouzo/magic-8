@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" width="512" height="512"><svg x="15.360000000000014" y="51.35316239316239" width="481.28" height="409.2936752136752" viewBox="75.5 75.5 468 398" style="fill-rule:evenodd;clip-rule:evenodd">
+    <g transform="matrix(1,0,0,1,-1914.517182,-814.517184)">
+        <g transform="matrix(-1,0,-0,-0.850427,3640,1960.688034)">
+            <path d="M1481.07,746.014L1715.07,1214.014C1728.792,1241.458 1728.963,1275.442 1715.519,1303.075C1702.074,1330.708 1677.074,1347.759 1650,1347.759L1182,1347.759C1154.926,1347.759 1129.926,1330.708 1116.481,1303.075C1103.037,1275.442 1103.208,1241.458 1116.93,1214.014L1350.93,746.014C1364.49,718.895 1389.246,702.241 1416,702.241C1442.754,702.241 1467.51,718.895 1481.07,746.014Z" style="fill:url(#_Linear1);"/>
+        </g>
+    </g>
+    <defs>
+        <linearGradient id="_Linear1" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-236,185.788945,-158,-277.507538,1468,1025)"><stop offset="0" style="stop-color:rgb(116,19,161);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(64,0,93);stop-opacity:1"/></linearGradient>
+    </defs>
+</svg></svg>
