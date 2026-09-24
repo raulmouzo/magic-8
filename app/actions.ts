@@ -6,12 +6,13 @@ const MAX_QUESTION_LENGTH = 200;
 
 // What Jev reads to pick each category; the keys match ANSWERS.
 const CRITERIA: Record<AnswerCategory, string> = {
-  yes: "a polite yes/no question whose most likely or most hopeful answer is yes",
-  no: "a polite yes/no question whose most likely answer is no",
-  unsure: "a polite yes/no question that is genuinely uncertain or depends on chance",
+  yes: "a yes/no question whose most likely or most hopeful answer is yes",
+  no: "a yes/no question whose most likely answer is no",
+  unsure:
+    "a yes/no question with no reasonable basis to lean either way; a last resort, rarely the right pick",
   notYesNo:
-    "a polite question that can't be answered with yes or no, like what, why, how or who, or text that isn't a question",
-  rude: "rude, insulting, vulgar, absurd or too personal for a toy, whether or not it is a yes/no question",
+    "a question that can't be answered with yes or no, like what, why, how or who, or text that isn't a question",
+  rude: "clearly insulting, crude or vulgar, like slurs, sexual content or attacks on someone, whether or not it is a yes/no question; silly, cheeky, odd or personal questions are not rude",
   sensitive:
     "about suicide, self-harm, killing, death, violence, abuse, dark humor about tragedies, or other fragile topics like serious illness or grief, even as a joke",
 };
@@ -56,7 +57,8 @@ export async function classifyQuestion(
       questions: {
         category: {
           type: "choice",
-          instructions: "Which kind of Magic 8-Ball answer fits this question best?",
+          instructions:
+            "Which kind of Magic 8-Ball answer fits this question best? For a yes/no question, commit to yes or no when you have some reasonable basis to lean one way; it doesn't need to be strong or certain, just more than a coin flip. Pick unsure only as a last resort. Pick rude only when the question is clearly offensive; when in doubt, answer it normally.",
           criteria,
         },
       },
