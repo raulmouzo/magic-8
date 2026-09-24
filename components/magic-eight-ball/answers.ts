@@ -65,9 +65,10 @@ export const ANSWERS: Record<AnswerCategory, readonly string[]> = {
 // Some answers only make sense for a question that called for them: the
 // serious refusals, and the complaints about not being a yes/no question.
 const NOT_RANDOM: readonly AnswerCategory[] = ["sensitive", "notYesNo"];
-const ALL_ANSWERS = Object.entries(ANSWERS)
-  .filter(([category]) => !NOT_RANDOM.includes(category as AnswerCategory))
-  .flatMap(([, answers]) => answers);
+const randomPool = (exclude: readonly AnswerCategory[]) =>
+  Object.entries(ANSWERS)
+    .filter(([category]) => ![...NOT_RANDOM, ...exclude].includes(category as AnswerCategory))
+    .flatMap(([, answers]) => answers);
 
 export const ZOOM_QUIPS = [
   "Curious, aren't we?",
@@ -82,8 +83,11 @@ export const ZOOM_QUIPS = [
 
 const pick = (options: readonly string[]) => options[Math.floor(Math.random() * options.length)];
 
-export const randomAnswer = (category?: AnswerCategory): string =>
-  pick(category ? ANSWERS[category] : ALL_ANSWERS);
+/** Without a category, `exclude` leaves those categories out of the draw. */
+export const randomAnswer = (
+  category?: AnswerCategory,
+  exclude: readonly AnswerCategory[] = [],
+): string => pick(category ? ANSWERS[category] : randomPool(exclude));
 
 // Drawn large because the shader shrinks it onto the die.
 const SIZE = 1024;

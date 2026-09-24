@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { classifyQuestion } from "@/app/actions";
+import { type AnswerCategory, randomAnswer } from "@/components/magic-eight-ball/answers";
 import AeroShards, { type AeroShardsHandle, type AeroShardsProps } from "@/components/aero-shards";
 import {
   MagicEightBall,
@@ -144,6 +145,13 @@ export default function Home() {
   // a failed call gets an "unsure" one, never a joke that could land badly.
   const [question, setQuestion] = useState("");
   const [classifying, setClassifying] = useState(false);
+  // The player can turn off the "maybe" and rude answers.
+  const [noMaybe, setNoMaybe] = useState(false);
+  const [noRude, setNoRude] = useState(false);
+  const excluded: AnswerCategory[] = [
+    ...(noMaybe ? (["unsure"] as const) : []),
+    ...(noRude ? (["rude"] as const) : []),
+  ];
   const handleSend = async () => {
     // Shaking and tapping the ball get here too, past the disabled button.
     console.log("[m8] send", { busy, classifying, question });
@@ -152,20 +160,22 @@ export default function Home() {
     archive();
     const entry: LogEntry = { id: nextId.current++, question: question.trim() || null };
     if (!entry.question) {
-      if (ballRef.current?.ask()) setCurrentEntry(entry);
+      if (ballRef.current?.ask(randomAnswer(undefined, excluded))) setCurrentEntry(entry);
       return;
     }
     setCurrentEntry(entry);
     setClassifying(true);
     setThinking(true);
     console.log("[m8] calling classifyQuestion");
-    const category = await classifyQuestion(entry.question).catch((error) => {
+    const category = await classifyQuestion(entry.question, excluded).catch((error) => {
       console.error("[m8] classifyQuestion failed", error);
       return null;
     });
     console.log("[m8] category", category);
     setClassifying(false);
-    if (ballRef.current?.ask({ category: category ?? "unsure" })) {
+    // Without "maybe", a failed call gets a plain yes or no instead.
+    const fallback = noMaybe ? randomAnswer(undefined, ["unsure", "rude"]) : { category: "unsure" as const };
+    if (ballRef.current?.ask(category ? { category } : fallback)) {
       setQuestion("");
     } else {
       setCurrentEntry(null);
@@ -244,6 +254,10 @@ export default function Home() {
               onHighlightChange={setButtonHighlighted}
             />
           </div>
+          <div className="pointer-events-auto flex gap-2 group-data-keyboard:hidden">
+            <AnswerToggle label="No maybes" checked={noMaybe} onChange={setNoMaybe} />
+            <AnswerToggle label="No rude answers" checked={noRude} onChange={setNoRude} />
+          </div>
           <p className="text-xs tracking-[0.2em] text-violet-200/50 uppercase select-none group-data-keyboard:hidden">
             {canShake ? "or shake your phone" : "or tap it"}
           </p>
@@ -266,5 +280,27 @@ export default function Home() {
 
       {showMotionPrompt && <MotionPermissionPrompt onAccept={motion.requestAccess} />}
     </>
+  );
+}
+
+function AnswerToggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2 rounded-full border border-violet-200/15 bg-violet-950/30 px-3 py-1.5 text-[11px] tracking-[0.15em] text-violet-200/60 uppercase backdrop-blur-md transition select-none hover:border-violet-200/30 hover:text-violet-100 has-checked:border-violet-200/40 has-checked:text-violet-50 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-violet-300">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="size-3.5 cursor-pointer accent-violet-400 outline-none"
+      />
+      {label}
+    </label>
   );
 }
