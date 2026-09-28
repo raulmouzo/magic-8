@@ -11,8 +11,10 @@ import {
   useMotionAccess,
   useShake,
 } from "@/components/magic-eight-ball/MagicEightBall";
+import { type QualityLevel, useGraphicsQuality } from "@/components/graphics-quality";
 import { MotionPermissionPrompt, useMotionPromptSeen } from "@/components/motion-permission-prompt";
 import { PromptBar } from "@/components/prompt-bar";
+import { QualityMenu } from "@/components/quality-menu";
 import { type LogEntry, QuestionLog } from "@/components/question-log";
 import { useKeyboardViewport } from "@/components/use-keyboard-viewport";
 
@@ -52,6 +54,25 @@ const BACKGROUND: Record<Screen, Partial<AeroShardsProps>> = {
   desktop: { placement: "full" },
 };
 
+// Caps on top of the screen's settings, which may already be lower. Low
+// also draws fewer shards; each one keeps its look.
+const BACKGROUND_LIMITS: Record<QualityLevel, { maxDpr: number; maxFps: number; density: number }> = {
+  high: { maxDpr: Infinity, maxFps: Infinity, density: 1.5 },
+  medium: { maxDpr: 1.5, maxFps: 60, density: 1.5 },
+  low: { maxDpr: 1, maxFps: 30, density: 1 },
+};
+
+const backgroundSettings = (screen: Screen, quality: QualityLevel): Partial<AeroShardsProps> => {
+  const base = BACKGROUND[screen];
+  const limits = BACKGROUND_LIMITS[quality];
+  return {
+    ...base,
+    maxDpr: Math.min(base.maxDpr ?? Infinity, limits.maxDpr),
+    maxFps: Math.min(base.maxFps ?? Infinity, limits.maxFps),
+    density: Math.min(base.density ?? limits.density, limits.density),
+  };
+};
+
 // Tailwind's md and lg breakpoints.
 const TABLET_QUERY = "(width >= 48rem)";
 const DESKTOP_QUERY = "(width >= 64rem)";
@@ -69,6 +90,7 @@ const getScreen = (): Screen =>
 
 export default function Home() {
   const screen = useSyncExternalStore(subscribeToScreen, getScreen, () => "desktop" as const);
+  const graphics = useGraphicsQuality();
   const ballRef = useRef<MagicEightBallHandle>(null);
   const shardsRef = useRef<AeroShardsHandle>(null);
   const [busy, setBusy] = useState(true);
@@ -197,7 +219,7 @@ export default function Home() {
             interaction="none"
             onReady={handleBackgroundReady}
             onError={handleBackgroundReady}
-            {...BACKGROUND[screen]}
+            {...backgroundSettings(screen, graphics.level)}
             speed={thinking ? THINKING_SPEED : IDLE_SPEED}
           />
         </div>
@@ -223,6 +245,8 @@ export default function Home() {
         >
           <MagicEightBall
             ref={ballRef}
+            quality={graphics.level}
+            onPerformanceChange={graphics.reportPerformance}
             canStart={backgroundReady}
             buttonHighlighted={buttonHighlighted && !busy}
             onBusyChange={setBusy}
@@ -262,6 +286,15 @@ export default function Home() {
             {canShake ? "or shake your phone" : "or tap it"}
           </p>
         </div>
+
+        {!keyboard && (
+          <QualityMenu
+            preference={graphics.preference}
+            autoLevel={graphics.autoLevel}
+            onChange={graphics.setPreference}
+            className="absolute bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))]"
+          />
+        )}
 
         {!keyboard && (
           <p className="pointer-events-none absolute right-[max(1rem,env(safe-area-inset-right))] bottom-[max(0.75rem,env(safe-area-inset-bottom))] text-[9px] tracking-[0.2em] text-violet-200/30 uppercase select-none">

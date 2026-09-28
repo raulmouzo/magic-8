@@ -1,13 +1,15 @@
 "use client";
 // @refresh reset -- the three.js scene lives in state; remount it on every edit instead of keeping a stale instance.
 
-import { useCursor } from "@react-three/drei";
+import { PerformanceMonitor, useCursor } from "@react-three/drei";
 import { type ThreeEvent, useFrame, useThree } from "@react-three/fiber";
 import { type Ref, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { MathUtils, type PerspectiveCamera } from "three";
+import type { PerformanceChange } from "../graphics-quality";
 import { loadWindowFont } from "./answers";
 import { useDeviceTilt, useIsTouch } from "./motion";
 import { BALL_RADIUS } from "./geometry";
+import type { BallQuality } from "./quality";
 import {
   type AnswerPicker,
   type AskRequest,
@@ -22,6 +24,9 @@ export type BallHandle = {
 
 type Props = BallEvents & {
   ref?: Ref<BallHandle>;
+  quality: BallQuality;
+  /** When set, the frame rate is monitored once the ball is on screen and changes are reported. */
+  onPerformanceChange?: (change: PerformanceChange) => void;
   /** Hold the entrance until true, e.g. until the background has faded in. */
   canStart?: boolean;
   buttonHighlighted?: boolean;
@@ -44,6 +49,8 @@ const ZOOM_PER_PIXEL = 0.0015;
 const TABLET_MIN_WIDTH = 768;
 const DESKTOP_MIN_WIDTH = 1024;
 const HALO_SCALE = 1.15;
+// Seconds of slack on the frame cap, so a 60 fps cap on a 60 Hz screen never skips a frame.
+const FRAME_SLACK = 0.004;
 
 /** Places the camera for the rest size; returns how far the ball travels for the close-ups. */
 function fitCamera(
@@ -71,6 +78,8 @@ function fitCamera(
 
 export function Ball({
   ref,
+  quality,
+  onPerformanceChange,
   canStart = true,
   buttonHighlighted = false,
   pickAnswer,
@@ -93,11 +102,15 @@ export function Ball({
   const deviceTilt = useRef({ x: 0, y: 0 });
   useDeviceTilt(deviceTilt, touch);
   const size = useThree((state) => state.size);
-  const [scene] = useState(() => new MagicEightBallScene());
+  const [scene] = useState(() => new MagicEightBallScene(quality));
   const [hovered, setHovered] = useState(false);
   useCursor(hovered);
 
   useEffect(() => () => scene.dispose(), [scene]);
+
+  useEffect(() => {
+    scene.setQuality(quality);
+  }, [scene, quality]);
 
   useEffect(() => {
     scene.setBusyListener(onBusyChange ?? null);
@@ -187,6 +200,16 @@ export function Ball({
     scene.update(clock.elapsedTime, delta, touch ? deviceTilt.current : pointer),
   );
 
+  // Takes over rendering (positive priority) to draw at most maxFps times a
+  // second. Animations above still advance on every frame.
+  const lastDraw = useRef(-Infinity);
+  useFrame(({ gl: renderer, scene: frameScene, camera: frameCamera, clock }) => {
+    const now = clock.elapsedTime;
+    if (now - lastDraw.current < 1 / quality.maxFps - FRAME_SLACK) return;
+    lastDraw.current = now;
+    renderer.render(frameScene, frameCamera);
+  }, 1);
+
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
     if (onBallClick) onBallClick();
@@ -195,6 +218,15 @@ export function Ball({
 
   return (
     <>
+      {/* Only from the entrance on, so loading and shader compiling don't count. */}
+      {started && onPerformanceChange && (
+        <PerformanceMonitor
+          flipflops={3}
+          onDecline={() => onPerformanceChange("decline")}
+          onIncline={() => onPerformanceChange("incline")}
+          onFallback={() => onPerformanceChange("fallback")}
+        />
+      )}
       {started && (
         <primitive
           object={scene.root}
