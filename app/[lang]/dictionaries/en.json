@@ -35,6 +35,22 @@
     "body": "Some phones need your permission to use their motion sensors. Allow it and you can shake your phone to ask the ball.",
     "ok": "OK"
   },
+  "qualityMenu": {
+    "open": "Graphics settings",
+    "title": "Graphics",
+    "levels": {
+      "auto": "Auto",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "hints": {
+      "auto": "Adapts to your device",
+      "high": "Every effect, full resolution",
+      "medium": "Lighter, nearly the same look",
+      "low": "Smoothest on older phones"
+    }
+  },
   "notFound": {
     "error": "Error 404",
     "title": "Reply hazy, try again",

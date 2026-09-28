@@ -41,6 +41,23 @@
     "ok": "Vale"
   },
 
+  "qualityMenu": {
+    "open": "Axustes de gráficos",
+    "title": "Gráficos",
+    "levels": {
+      "auto": "Auto",
+      "high": "Alta",
+      "medium": "Media",
+      "low": "Baixa"
+    },
+    "hints": {
+      "auto": "Adáptase ao teu dispositivo",
+      "high": "Todos os efectos, resolución completa",
+      "medium": "Máis lixeira, case o mesmo aspecto",
+      "low": "A máis fluída en móbiles vellos"
+    }
+  },
+
   "notFound": {
     "error": "Erro 404",
     "title": "Aquí non é, meu",

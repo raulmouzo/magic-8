@@ -35,6 +35,22 @@
     "body": "Algunos móviles necesitan tu permiso para usar sus sensores de movimiento. Permítelo y podrás agitar el móvil para preguntarle a la bola.",
     "ok": "Vale"
   },
+  "qualityMenu": {
+    "open": "Ajustes de gráficos",
+    "title": "Gráficos",
+    "levels": {
+      "auto": "Auto",
+      "high": "Alta",
+      "medium": "Media",
+      "low": "Baja"
+    },
+    "hints": {
+      "auto": "Se adapta a tu dispositivo",
+      "high": "Todos los efectos, resolución completa",
+      "medium": "Más ligera, casi el mismo aspecto",
+      "low": "La más fluida en móviles antiguos"
+    }
+  },
   "notFound": {
     "error": "Error 404",
     "title": "¿Estás seguro que era aquí?",
