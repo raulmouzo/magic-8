@@ -11,17 +11,20 @@ import { AdditiveBlending, BackSide } from "three";
 import { Ball, type BallHandle } from "./Ball";
 import { BUTTON_REFLECTION_SHADER, GALAXY_SHADER } from "./materials";
 import { BUTTON_POSITION } from "./MagicEightBallScene";
-import type { AnswerPicker, BallEvents } from "./MagicEightBallScene";
+import type { AnswerPicker, BallEvents, BallTexts } from "./MagicEightBallScene";
 import type { PerformanceChange, QualityLevel } from "../graphics-quality";
 import { BALL_QUALITY } from "./quality";
 
 export type { BallHandle as MagicEightBallHandle };
-export { ANSWERS, type AnswerCategory, randomAnswer } from "./answers";
+export { type Answer, type AnswerCategory, type AnswerSet, randomAnswer } from "./answers";
+export type { BallTexts };
 export { useIsTouch, useMotionAccess, useShake } from "./motion";
 
 type Props = BallEvents & {
   /** Imperative API: `ref.current.ask()`, `ref.current.ask({ category: "no" })` or `ref.current.ask("Yes")`. */
   ref?: Ref<BallHandle>;
+  /** Answers and zoom quips, in the page's language. */
+  texts: BallTexts;
   /** Graphics level; see BALL_QUALITY. */
   quality?: QualityLevel;
   /** When set, the frame rate is monitored and sustained changes reported (for automatic quality). */

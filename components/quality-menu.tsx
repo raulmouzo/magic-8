@@ -1,20 +1,10 @@
 "use client";
 
 import { useId } from "react";
+import { useDictionary } from "@/components/dictionary-provider";
 import type { QualityLevel, QualityPreference } from "./graphics-quality";
 
-const LEVEL_NAMES: Record<QualityLevel, string> = {
-  high: "High",
-  medium: "Medium",
-  low: "Low",
-};
-
-const OPTIONS: { value: QualityPreference; label: string; hint: string }[] = [
-  { value: "auto", label: "Auto", hint: "Adapts to your device" },
-  { value: "high", label: "High", hint: "Every effect, full resolution" },
-  { value: "medium", label: "Medium", hint: "Lighter, nearly the same look" },
-  { value: "low", label: "Low", hint: "Smoothest on older phones" },
-];
+const OPTIONS: readonly QualityPreference[] = ["auto", "high", "medium", "low"];
 
 type Props = {
   preference: QualityPreference;
@@ -29,6 +19,7 @@ type Props = {
  * Escape or a click outside with no script of its own.
  */
 export function QualityMenu({ preference, autoLevel, onChange, className = "" }: Props) {
+  const { qualityMenu: t } = useDictionary();
   const id = useId();
   const popoverId = `${id}-popover`;
   const titleId = `${id}-title`;
@@ -38,7 +29,7 @@ export function QualityMenu({ preference, autoLevel, onChange, className = "" }:
       <button
         type="button"
         popoverTarget={popoverId}
-        aria-label="Graphics settings"
+        aria-label={t.open}
         className="flex size-8 items-center justify-center rounded-full border border-violet-200/15 bg-violet-950/30 text-violet-200/50 backdrop-blur-md transition hover:border-violet-200/30 hover:text-violet-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300"
       >
         {/* Heroicons "cog-6-tooth" (outline), MIT. */}
@@ -65,30 +56,30 @@ export function QualityMenu({ preference, autoLevel, onChange, className = "" }:
             id={titleId}
             className="mb-3 text-[11px] font-semibold tracking-[0.25em] text-violet-100 uppercase"
           >
-            Graphics
+            {t.title}
           </legend>
           <div className="flex flex-col gap-1">
             {OPTIONS.map((option) => (
               <label
-                key={option.value}
+                key={option}
                 className="flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-2 transition hover:bg-violet-200/5 has-checked:bg-violet-200/10 has-focus-visible:outline-2 has-focus-visible:outline-violet-300"
               >
                 <input
                   type="radio"
                   name={`${id}-quality`}
-                  value={option.value}
-                  checked={preference === option.value}
-                  onChange={() => onChange(option.value)}
+                  value={option}
+                  checked={preference === option}
+                  onChange={() => onChange(option)}
                   className="size-3.5 cursor-pointer accent-violet-400 outline-none"
                 />
                 <span className="flex flex-col">
                   <span className="text-sm">
-                    {option.label}
-                    {option.value === "auto" && (
-                      <span className="text-violet-200/50"> · {LEVEL_NAMES[autoLevel]}</span>
+                    {t.levels[option]}
+                    {option === "auto" && (
+                      <span className="text-violet-200/50"> · {t.levels[autoLevel]}</span>
                     )}
                   </span>
-                  <span className="text-xs text-violet-200/50">{option.hint}</span>
+                  <span className="text-xs text-violet-200/50">{t.hints[option]}</span>
                 </span>
               </label>
             ))}

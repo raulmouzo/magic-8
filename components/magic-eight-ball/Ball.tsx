@@ -14,6 +14,7 @@ import {
   type AnswerPicker,
   type AskRequest,
   type BallEvents,
+  type BallTexts,
   MagicEightBallScene,
 } from "./MagicEightBallScene";
 
@@ -24,6 +25,7 @@ export type BallHandle = {
 
 type Props = BallEvents & {
   ref?: Ref<BallHandle>;
+  texts: BallTexts;
   quality: BallQuality;
   /** When set, the frame rate is monitored once the ball is on screen and changes are reported. */
   onPerformanceChange?: (change: PerformanceChange) => void;
@@ -78,6 +80,7 @@ function fitCamera(
 
 export function Ball({
   ref,
+  texts,
   quality,
   onPerformanceChange,
   canStart = true,
@@ -102,7 +105,7 @@ export function Ball({
   const deviceTilt = useRef({ x: 0, y: 0 });
   useDeviceTilt(deviceTilt, touch);
   const size = useThree((state) => state.size);
-  const [scene] = useState(() => new MagicEightBallScene(quality));
+  const [scene] = useState(() => new MagicEightBallScene(texts, quality));
   const [hovered, setHovered] = useState(false);
   useCursor(hovered);
 
@@ -116,6 +119,10 @@ export function Ball({
     scene.setBusyListener(onBusyChange ?? null);
     return () => scene.setBusyListener(null);
   }, [scene, onBusyChange]);
+
+  useEffect(() => {
+    scene.setTexts(texts);
+  }, [scene, texts]);
 
   useEffect(() => {
     scene.setAnswerPicker(pickAnswer ?? null);

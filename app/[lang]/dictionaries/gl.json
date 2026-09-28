@@ -1,0 +1,172 @@
+{
+  "metadata": {
+    "title": "Magic 8 Ball",
+    "description": "Faille unha pregunta á Magic 8 Ball.",
+    "notFoundTitle": "Páxina non atopada · Magic 8 Ball"
+  },
+
+  "home": {
+    "placeholder": "Pregunta algo",
+    "noMaybes": "Sen quizais",
+    "noRude": "Sen respostas groseiras",
+    "orShake": "ou axita o móbil",
+    "orTap": "ou tócaa",
+    "poweredBy": "Coa tecnoloxía de Jev"
+  },
+
+  "promptBar": {
+    "question": "A túa pregunta",
+    "goRandom": "Ou ao chou",
+    "ask": "Preguntarlle á bola"
+  },
+
+  "questionLog": {
+    "random": "Ao chou",
+    "thinking": "A bola está a pensar",
+    "recent": "Respostas recentes",
+
+    "labels": {
+      "yes": "Si",
+      "no": "Non",
+      "unsure": "Xa veremos",
+      "notYesNo": "Inválida",
+      "rude": "Descarada",
+      "sensitive": "Paso"
+    }
+  },
+
+  "motionPrompt": {
+    "title": "Axita para preguntar",
+    "body": "Algúns móbiles precisan o teu permiso para usar os sensores de movemento. Permíteo e poderás axitar o móbil para preguntarlle á bola.",
+    "ok": "Vale"
+  },
+
+  "qualityMenu": {
+    "open": "Axustes de gráficos",
+    "title": "Gráficos",
+    "levels": {
+      "auto": "Auto",
+      "high": "Alta",
+      "medium": "Media",
+      "low": "Baixa"
+    },
+    "hints": {
+      "auto": "Adáptase ao teu dispositivo",
+      "high": "Todos os efectos, resolución completa",
+      "medium": "Máis lixeira, case o mesmo aspecto",
+      "low": "A máis fluída en móbiles vellos"
+    }
+  },
+
+  "notFound": {
+    "error": "Erro 404",
+    "title": "Aquí non é, meu",
+    "body": "A bola buscou por todas partes, pero esta páxina non aparece nin querendo.",
+    "back": "Pregúntalle á bola"
+  },
+
+  "answers": {
+    "yes": [
+      "É certo",
+      "Claramente si",
+      "Sen dúbida",
+      "Si, home, si",
+      "Podes contar con iso",
+      "Tal como o vexo, si",
+      "O máis probable",
+      "Todo apunta a que si",
+      "Vai ser que si",
+      "Si, pero tampouco te emociones"
+    ],
+
+    "no": [
+      "Non contes con iso",
+      "A miña resposta é non",
+      "As miñas fontes din que non",
+      "O prognóstico non é bo",
+      "Moi dubidoso",
+      "Vai ser que non",
+      "Non, home, non",
+      "Máis ben non",
+      "Iso non o vexo eu",
+      "Non ten pinta",
+      "Pois non",
+      "Non vai ser"
+    ],
+
+    "unsure": [
+      "Vai pola sombra!",
+      "Xa veremos",
+      "Malo será",
+      "Pregunta máis tarde",
+      "Concéntrate e pregunta de novo",
+      "Difícil de dicir",
+      "Pode saír calquera cousa",
+      "Haberá que velo",
+      "Quen sabe...",
+      "Non che digo que si nin que non",
+      "Eu que sei, meu",
+      "Mellor non facer plans aínda",
+      "Tempo ao tempo",
+      "Depende",
+      "Pensao mellor"
+    ],
+
+    "notYesNo": [
+      "Si ou non, por favor",
+      "Só respondo si ou non",
+      "Iso non é de si ou non",
+      "Proba cunha pregunta de si ou non",
+      "Son unha bola, non unha enciclopedia",
+      "A min non me veñas con rodeos",
+      "Pregunta unha cousa máis concreta, home",
+      "Non me líes, que son unha bola"
+    ],
+
+    "rude": [
+      "Pregunta rara, mesmo para ti",
+      "De verdade me preguntaches iso?",
+      "Son unha bola, non un terapeuta",
+      "Non. Iso non o toco",
+      "Pregúntalle á túa nai",
+      "Quen che fixo dano?",
+      "Iso é problema teu",
+      "Home, tamén podías preguntar outra cousa",
+      "Mira que cousas me preguntas...",
+      "Iso xa é moito preguntar",
+      "Non te pases, meu"
+    ],
+
+    "sensitive": [
+      "Non podo responder a iso",
+      "Non podo responder a esa",
+      "Esa non a podo responder",
+      "Non vou responder a iso",
+      "Non é unha pregunta para min",
+      "Iso escápaseme",
+      "Non podo axudar con iso",
+      "Non teño resposta para iso",
+      "Paso desa",
+      "Non me toca a min respondela",
+      "Diso mellor non falamos",
+      "Mellor deixámolo estar"
+    ]
+  },
+
+  "zoomQuips": [
+    "Curioso, eh?",
+    "Espazo persoal, por favor",
+    "Véxoche os poros",
+    "Moi preto!",
+    "Pregunta, non fites",
+    "Bu!",
+    "Aquí non hai nada que ver",
+    "Ola, ti",
+    "Non hai peixe aquí",
+    "Vai tirando, anda",
+    "Así tan preto non vexo ben",
+    "Máis atrás, que me mareo",
+    "Aí xa estás demasiado preto",
+    "Non hai nada que ver, home"
+  ]
+}

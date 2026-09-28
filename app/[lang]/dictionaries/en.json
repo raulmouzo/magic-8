@@ -1,0 +1,128 @@
+{
+  "metadata": {
+    "title": "Magic 8 Ball",
+    "description": "Ask the Magic 8 Ball a question.",
+    "notFoundTitle": "Page not found · Magic 8 Ball"
+  },
+  "home": {
+    "placeholder": "Ask something",
+    "noMaybes": "No maybes",
+    "noRude": "No rude answers",
+    "orShake": "or shake your phone",
+    "orTap": "or tap it",
+    "poweredBy": "Powered by Jev"
+  },
+  "promptBar": {
+    "question": "Your question",
+    "goRandom": "Or go random",
+    "ask": "Ask the ball"
+  },
+  "questionLog": {
+    "random": "Random",
+    "thinking": "The ball is thinking",
+    "recent": "Recent answers",
+    "labels": {
+      "yes": "Yes",
+      "no": "No",
+      "unsure": "Maybe",
+      "notYesNo": "Rephrase",
+      "rude": "Sassy",
+      "sensitive": "Pass"
+    }
+  },
+  "motionPrompt": {
+    "title": "Shake to ask",
+    "body": "Some phones need your permission to use their motion sensors. Allow it and you can shake your phone to ask the ball.",
+    "ok": "OK"
+  },
+  "qualityMenu": {
+    "open": "Graphics settings",
+    "title": "Graphics",
+    "levels": {
+      "auto": "Auto",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "hints": {
+      "auto": "Adapts to your device",
+      "high": "Every effect, full resolution",
+      "medium": "Lighter, nearly the same look",
+      "low": "Smoothest on older phones"
+    }
+  },
+  "notFound": {
+    "error": "Error 404",
+    "title": "Reply hazy, try again",
+    "body": "The ball looked everywhere, but this page doesn’t exist.",
+    "back": "Ask the ball"
+  },
+  "answers": {
+    "yes": [
+      "It is certain",
+      "It is decidedly so",
+      "Without a doubt",
+      "Yes, definitely",
+      "You may rely on it",
+      "As I see it, yes",
+      "Most likely",
+      "Outlook good",
+      "Signs point to yes",
+      "Yes"
+    ],
+    "no": [
+      "Don’t count on it",
+      "My reply is no",
+      "My sources say no",
+      "Outlook not so good",
+      "Very doubtful"
+    ],
+    "unsure": [
+      "Reply hazy, try again",
+      "Ask again later",
+      "Concentrate and ask again",
+      "Hard to say",
+      "Could go either way"
+    ],
+    "notYesNo": [
+      "Yes or no, please",
+      "I only do yes or no",
+      "That’s not a yes or no",
+      "Try a yes or no question",
+      "Rephrase that, mortal",
+      "I’m a ball, not an encyclopedia"
+    ],
+    "rude": [
+      "You’re asking me THAT?!",
+      "Weird question, even for you",
+      "Did you really just ask that?",
+      "I’m a ball, not a therapist",
+      "Nope. Not touching that one",
+      "Ask your mother",
+      "Who hurt you?",
+      "That’s a you problem"
+    ],
+    "sensitive": [
+      "I can’t answer that",
+      "I can’t answer that one",
+      "That’s not one I can answer",
+      "I won’t answer that",
+      "Not a question for me",
+      "That’s beyond me",
+      "I can’t help with that",
+      "No answer for that one",
+      "I’ll pass on that one",
+      "Not mine to answer"
+    ]
+  },
+  "zoomQuips": [
+    "Curious, aren't we?",
+    "Personal space, please",
+    "I can see your pores",
+    "Too close!",
+    "Ask, don't stare",
+    "Boo!",
+    "Nothing to see here",
+    "Hi there"
+  ]
+}
