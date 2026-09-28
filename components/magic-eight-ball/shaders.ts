@@ -1,8 +1,11 @@
 // GLSL noise helpers.
 
 // https://github.com/yiwenl/glsl-fbm/blob/master/3d.glsl
+// Materials can lower NUM_OCTAVES through their defines to save work.
 export const fbm = /* glsl */ `
+  #ifndef NUM_OCTAVES
   #define NUM_OCTAVES 6
+  #endif
 
   float mod289(float x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
   vec4 mod289(vec4 x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
