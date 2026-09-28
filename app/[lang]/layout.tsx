@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { lang } from "next/root-params";
 import { DictionaryProvider } from "@/components/dictionary-provider";
+import { SiteNotice } from "@/components/site-notice";
 import { locales } from "@/i18n/locales";
+import { getSiteNotice } from "@/lib/site-notice";
 import { getDictionary } from "./dictionaries";
 import "../globals.css";
 
@@ -50,6 +52,8 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
+  // Read at build time, like the AI key: a changed notice needs a redeploy.
+  const notice = getSiteNotice();
   return (
     <html
       lang={await lang()}
@@ -57,6 +61,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
     >
       <body className="min-h-full flex flex-col">
         <DictionaryProvider dictionary={await getDictionary()}>{children}</DictionaryProvider>
+        {notice && <SiteNotice {...notice} />}
       </body>
     </html>
   );
