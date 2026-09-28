@@ -1,0 +1,112 @@
+{
+  "metadata": {
+    "title": "Magic 8 Ball",
+    "description": "Faille unha pregunta á Magic 8 Ball.",
+    "notFoundTitle": "Páxina non atopada · Magic 8 Ball"
+  },
+  "home": {
+    "placeholder": "Pregunta algo",
+    "noMaybes": "Sen quizais",
+    "noRude": "Sen respostas groseiras",
+    "orShake": "ou axita o móbil",
+    "orTap": "ou tócaa",
+    "poweredBy": "Con tecnoloxía de Jev"
+  },
+  "promptBar": {
+    "question": "A túa pregunta",
+    "goRandom": "Ou ao chou",
+    "ask": "Preguntarlle á bola"
+  },
+  "questionLog": {
+    "random": "Ao chou",
+    "thinking": "A bola está a pensar",
+    "recent": "Respostas recentes",
+    "labels": {
+      "yes": "Si",
+      "no": "Non",
+      "unsure": "Quizais",
+      "notYesNo": "Reformula",
+      "rude": "Descarada",
+      "sensitive": "Paso"
+    }
+  },
+  "motionPrompt": {
+    "title": "Axita para preguntar",
+    "body": "Algúns móbiles precisan o teu permiso para usar os sensores de movemento. Permíteo e poderás axitar o móbil para preguntarlle á bola.",
+    "ok": "Vale"
+  },
+  "notFound": {
+    "error": "Erro 404",
+    "title": "Resposta difusa, téntao de novo",
+    "body": "A bola buscou por todas partes, pero esta páxina non existe.",
+    "back": "Pregúntalle á bola"
+  },
+  "answers": {
+    "yes": [
+      "É certo",
+      "Claramente si",
+      "Sen dúbida",
+      "Si, desde logo",
+      "Podes contar con iso",
+      "Tal como o vexo, si",
+      "O máis probable",
+      "Bo prognóstico",
+      "Todo apunta a que si",
+      "Si"
+    ],
+    "no": [
+      "Non contes con iso",
+      "A miña resposta é non",
+      "As miñas fontes din que non",
+      "O prognóstico non é bo",
+      "Moi dubidoso"
+    ],
+    "unsure": [
+      "Resposta difusa, téntao de novo",
+      "Pregunta máis tarde",
+      "Concéntrate e pregunta de novo",
+      "Difícil de dicir",
+      "Pode saír calquera cousa"
+    ],
+    "notYesNo": [
+      "Si ou non, por favor",
+      "Só respondo si ou non",
+      "Iso non é de si ou non",
+      "Proba cunha pregunta de si ou non",
+      "Reformúlao, mortal",
+      "Son unha bola, non unha enciclopedia"
+    ],
+    "rude": [
+      "ISO me preguntas?!",
+      "Pregunta rara, mesmo para ti",
+      "De verdade me preguntaches iso?",
+      "Son unha bola, non un terapeuta",
+      "Non. Iso non o toco",
+      "Pregúntalle á túa nai",
+      "Quen che fixo dano?",
+      "Iso é problema teu"
+    ],
+    "sensitive": [
+      "Non podo responder a iso",
+      "Non podo responder a esa",
+      "Esa non a podo responder",
+      "Non vou responder a iso",
+      "Non é unha pregunta para min",
+      "Iso escápaseme",
+      "Non podo axudar con iso",
+      "Non teño resposta para esa",
+      "Paso desa",
+      "Non me toca a min respondela"
+    ]
+  },
+  "zoomQuips": [
+    "Curioso, eh?",
+    "Espazo persoal, por favor",
+    "Véxoche os poros",
+    "Moi preto!",
+    "Pregunta, non fites",
+    "Bu!",
+    "Aquí non hai nada que ver",
+    "Ola, ti"
+  ]
+}

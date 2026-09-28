@@ -11,8 +11,9 @@ import {
   Vector3,
 } from "three";
 import {
+  type Answer,
   type AnswerCategory,
-  ZOOM_QUIPS,
+  type AnswerSet,
   createAnswerTexture,
   createSigilTexture,
   randomAnswer,
@@ -55,12 +56,18 @@ type Timeline = {
 };
 
 type BusyListener = (busy: boolean) => void;
-export type AnswerPicker = () => string;
-/** What to show: exact text, a random answer from a category, or (omitted) the answer picker's choice. */
-export type AskRequest = string | { category: AnswerCategory };
+export type AnswerPicker = () => Answer;
+/**
+ * What to show: exact text, an answer from a category (random unless `text`
+ * is given), or (omitted) the answer picker's choice.
+ */
+export type AskRequest = string | { category: AnswerCategory; text?: string };
+/** The texts the ball shows, in the page's language. */
+export type BallTexts = { answers: AnswerSet; zoomQuips: readonly string[] };
 export type BallEvents = {
   onAsk?: () => void;
-  onReveal?: (answer: string) => void;
+  /** `category` is missing when `ask` was given exact text. */
+  onReveal?: (answer: string, category?: AnswerCategory) => void;
   onRest?: () => void;
 };
 
@@ -128,13 +135,15 @@ export class MagicEightBallScene {
   private readonly tilt = new Vector2();
   private drawText: () => CanvasTexture = createSigilTexture;
   private textTexture: CanvasTexture | null = null;
-  private pickAnswer: AnswerPicker = () => randomAnswer();
+  private texts: BallTexts;
+  private pickAnswer: AnswerPicker = () => randomAnswer(this.texts.answers);
   private timeline: Timeline | null = null;
   // Busy until start(), so nothing can be asked before the ball is on screen.
   private busy = true;
   private busyListener: BusyListener | null = null;
 
-  constructor() {
+  constructor(texts: BallTexts) {
+    this.texts = texts;
     this.root.add(
       new Mesh(createShellGeometry(), createShellMaterial(this.uniforms)),
       new Mesh(createBezelGeometry(), createBezelMaterial()),
@@ -199,7 +208,12 @@ export class MagicEightBallScene {
   }
 
   setAnswerPicker(picker: AnswerPicker | null): void {
-    this.pickAnswer = picker ?? (() => randomAnswer());
+    this.pickAnswer = picker ?? (() => randomAnswer(this.texts.answers));
+  }
+
+  /** Used from the next answer or quip on. */
+  setTexts(texts: BallTexts): void {
+    this.texts = texts;
   }
 
   /** Redraws the current text, e.g. once the web font has loaded. */
@@ -229,15 +243,17 @@ export class MagicEightBallScene {
         {
           at: ANSWER_AT,
           run: () => {
-            const text =
+            const { text, category }: { text: string; category?: AnswerCategory } =
               request === undefined
                 ? this.pickAnswer()
                 : typeof request === "string"
-                  ? request
-                  : randomAnswer(request.category);
+                  ? { text: request }
+                  : request.text !== undefined
+                    ? { text: request.text, category: request.category }
+                    : randomAnswer(this.texts.answers, request.category);
             this.setText(() => createAnswerTexture(text));
             this.uniforms.quip.value = 0;
-            this.events.onReveal?.(text);
+            this.events.onReveal?.(text, category);
           },
         },
         { at: ANSWER_AT + 1400, run: () => this.setBusy(false) },
@@ -338,7 +354,7 @@ export class MagicEightBallScene {
       this.closeZoomTime = this.zoom > QUIP_ZOOM.show ? this.closeZoomTime + deltaSeconds : 0;
       if (this.closeZoomTime < QUIP_ZOOM.delay) return;
       this.closeZoomTime = 0;
-      const options = ZOOM_QUIPS.filter((quip) => quip !== this.lastQuip);
+      const options = this.texts.zoomQuips.filter((quip) => quip !== this.lastQuip);
       const quip = options[Math.floor(Math.random() * options.length)];
       this.lastQuip = quip;
       this.textBeforeQuip = this.drawText;

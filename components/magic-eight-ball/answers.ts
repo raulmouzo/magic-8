@@ -2,92 +2,32 @@ import { CanvasTexture, SRGBColorSpace } from "three";
 
 export type AnswerCategory = "yes" | "no" | "unsure" | "notYesNo" | "rude" | "sensitive";
 
-export const ANSWERS: Record<AnswerCategory, readonly string[]> = {
-  yes: [
-    "It is certain",
-    "It is decidedly so",
-    "Without a doubt",
-    "Yes, definitely",
-    "You may rely on it",
-    "As I see it, yes",
-    "Most likely",
-    "Outlook good",
-    "Signs point to yes",
-    "Yes",
-  ],
-  no: [
-    "Don’t count on it",
-    "My reply is no",
-    "My sources say no",
-    "Outlook not so good",
-    "Very doubtful",
-  ],
-  unsure: [
-    "Reply hazy, try again",
-    "Ask again later",
-    "Concentrate and ask again",
-    "Hard to say",
-    "Could go either way",
-  ],
-  notYesNo: [
-    "Yes or no, please",
-    "I only do yes or no",
-    "That’s not a yes or no",
-    "Try a yes or no question",
-    "Rephrase that, mortal",
-    "I’m a ball, not an encyclopedia",
-  ],
-  rude: [
-    "You’re asking me THAT?!",
-    "Weird question, even for you",
-    "Did you really just ask that?",
-    "I’m a ball, not a therapist",
-    "Nope. Not touching that one",
-    "Ask your mother",
-    "Who hurt you?",
-    "That’s a you problem",
-  ],
-  // Serious topics: a plain refusal, never a joke.
-  sensitive: [
-    "I can’t answer that",
-    "I can’t answer that one",
-    "That’s not one I can answer",
-    "I won’t answer that",
-    "Not a question for me",
-    "That’s beyond me",
-    "I can’t help with that",
-    "No answer for that one",
-    "I’ll pass on that one",
-    "Not mine to answer",
-  ],
-};
+/** Every answer the ball can give, by category; comes from the dictionary. */
+export type AnswerSet = Record<AnswerCategory, readonly string[]>;
+
+/** An answer and the category it was drawn from. */
+export type Answer = { category: AnswerCategory; text: string };
 
 // Some answers only make sense for a question that called for them: the
-// serious refusals, and the complaints about not being a yes/no question.
+// serious refusals (a plain refusal, never a joke), and the complaints about
+// not being a yes/no question.
 const NOT_RANDOM: readonly AnswerCategory[] = ["sensitive", "notYesNo"];
-const randomPool = (exclude: readonly AnswerCategory[]) =>
-  Object.entries(ANSWERS)
-    .filter(([category]) => ![...NOT_RANDOM, ...exclude].includes(category as AnswerCategory))
-    .flatMap(([, answers]) => answers);
+const randomPool = (answers: AnswerSet, exclude: readonly AnswerCategory[]): Answer[] =>
+  (Object.keys(answers) as AnswerCategory[])
+    .filter((category) => ![...NOT_RANDOM, ...exclude].includes(category))
+    .flatMap((category) => answers[category].map((text) => ({ category, text })));
 
-export const ZOOM_QUIPS = [
-  "Curious, aren't we?",
-  "Personal space, please",
-  "I can see your pores",
-  "Too close!",
-  "Ask, don't stare",
-  "Boo!",
-  "Nothing to see here",
-  "Hi there",
-] as const;
-
-const pick = (options: readonly string[]) => options[Math.floor(Math.random() * options.length)];
+const pick = <T>(options: readonly T[]): T => options[Math.floor(Math.random() * options.length)];
 
 /** Without a category, `exclude` leaves those categories out of the draw. */
 export const randomAnswer = (
+  answers: AnswerSet,
   category?: AnswerCategory,
   exclude: readonly AnswerCategory[] = [],
-): string => pick(category ? ANSWERS[category] : randomPool(exclude));
+): Answer =>
+  category
+    ? { category, text: pick(answers[category]) }
+    : pick(randomPool(answers, exclude));
 
 // Drawn large because the shader shrinks it onto the die.
 const SIZE = 1024;

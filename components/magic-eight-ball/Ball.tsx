@@ -12,6 +12,7 @@ import {
   type AnswerPicker,
   type AskRequest,
   type BallEvents,
+  type BallTexts,
   MagicEightBallScene,
 } from "./MagicEightBallScene";
 
@@ -22,6 +23,7 @@ export type BallHandle = {
 
 type Props = BallEvents & {
   ref?: Ref<BallHandle>;
+  texts: BallTexts;
   /** Hold the entrance until true, e.g. until the background has faded in. */
   canStart?: boolean;
   buttonHighlighted?: boolean;
@@ -71,6 +73,7 @@ function fitCamera(
 
 export function Ball({
   ref,
+  texts,
   canStart = true,
   buttonHighlighted = false,
   pickAnswer,
@@ -93,7 +96,7 @@ export function Ball({
   const deviceTilt = useRef({ x: 0, y: 0 });
   useDeviceTilt(deviceTilt, touch);
   const size = useThree((state) => state.size);
-  const [scene] = useState(() => new MagicEightBallScene());
+  const [scene] = useState(() => new MagicEightBallScene(texts));
   const [hovered, setHovered] = useState(false);
   useCursor(hovered);
 
@@ -103,6 +106,10 @@ export function Ball({
     scene.setBusyListener(onBusyChange ?? null);
     return () => scene.setBusyListener(null);
   }, [scene, onBusyChange]);
+
+  useEffect(() => {
+    scene.setTexts(texts);
+  }, [scene, texts]);
 
   useEffect(() => {
     scene.setAnswerPicker(pickAnswer ?? null);

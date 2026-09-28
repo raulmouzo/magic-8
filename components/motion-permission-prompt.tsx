@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
+import { useDictionary } from "@/components/dictionary-provider";
 
 const SEEN_KEY = "motion-permission-prompt-seen";
 
@@ -33,6 +34,7 @@ type Props = {
 
 /** One-time explanation shown before the system motion-permission prompt. */
 export function MotionPermissionPrompt({ onAccept }: Props) {
+  const { motionPrompt: t } = useDictionary();
   const [open, setOpen] = useState(true);
   if (!open) return null;
 
@@ -54,11 +56,10 @@ export function MotionPermissionPrompt({ onAccept }: Props) {
           id="motion-prompt-title"
           className="text-sm font-semibold tracking-[0.25em] uppercase"
         >
-          Shake to ask
+          {t.title}
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-violet-100/80">
-          Some phones need your permission to use their motion sensors. Allow it
-          and you can shake your phone to ask the ball.
+          {t.body}
         </p>
         <button
           type="button"
@@ -66,7 +67,7 @@ export function MotionPermissionPrompt({ onAccept }: Props) {
           autoFocus
           className="mt-5 rounded-full border border-violet-200/20 bg-violet-900/50 px-8 py-2.5 text-sm font-semibold tracking-[0.25em] uppercase transition focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-300"
         >
-          OK
+          {t.ok}
         </button>
       </div>
     </div>

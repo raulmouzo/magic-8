@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { classifyQuestion } from "@/app/actions";
+import { useDictionary } from "@/components/dictionary-provider";
 import { type AnswerCategory, randomAnswer } from "@/components/magic-eight-ball/answers";
 import AeroShards, { type AeroShardsHandle, type AeroShardsProps } from "@/components/aero-shards";
 import {
@@ -68,6 +69,8 @@ const getScreen = (): Screen =>
       : "mobile";
 
 export default function Home() {
+  const t = useDictionary();
+  const ballTexts = useMemo(() => ({ answers: t.answers, zoomQuips: t.zoomQuips }), [t]);
   const screen = useSyncExternalStore(subscribeToScreen, getScreen, () => "desktop" as const);
   const ballRef = useRef<MagicEightBallHandle>(null);
   const shardsRef = useRef<AeroShardsHandle>(null);
@@ -132,8 +135,12 @@ export default function Home() {
   useEffect(() => () => clearTimeout(archiveTimer.current), []);
 
   const handleReveal = useCallback(
-    (answer: string) =>
-      setCurrentEntry({ ...(currentRef.current ?? { id: nextId.current++, question: null }), answer }),
+    (answer: string, category?: AnswerCategory) =>
+      setCurrentEntry({
+        ...(currentRef.current ?? { id: nextId.current++, question: null }),
+        answer,
+        category,
+      }),
     [setCurrentEntry],
   );
   const handleRest = useCallback(() => {
@@ -160,7 +167,7 @@ export default function Home() {
     archive();
     const entry: LogEntry = { id: nextId.current++, question: question.trim() || null };
     if (!entry.question) {
-      if (ballRef.current?.ask(randomAnswer(undefined, excluded))) setCurrentEntry(entry);
+      if (ballRef.current?.ask(randomAnswer(t.answers, undefined, excluded))) setCurrentEntry(entry);
       return;
     }
     setCurrentEntry(entry);
@@ -174,7 +181,7 @@ export default function Home() {
     console.log("[m8] category", category);
     setClassifying(false);
     // Without "maybe", a failed call gets a plain yes or no instead.
-    const fallback = noMaybe ? randomAnswer(undefined, ["unsure", "rude"]) : { category: "unsure" as const };
+    const fallback = noMaybe ? randomAnswer(t.answers, undefined, ["unsure", "rude"]) : { category: "unsure" as const };
     if (ballRef.current?.ask(category ? { category } : fallback)) {
       setQuestion("");
     } else {
@@ -223,6 +230,7 @@ export default function Home() {
         >
           <MagicEightBall
             ref={ballRef}
+            texts={ballTexts}
             canStart={backgroundReady}
             buttonHighlighted={buttonHighlighted && !busy}
             onBusyChange={setBusy}
@@ -250,22 +258,22 @@ export default function Home() {
               onSend={handleSend}
               disabled={busy || classifying}
               maxLength={200}
-              placeholder="Ask something"
+              placeholder={t.home.placeholder}
               onHighlightChange={setButtonHighlighted}
             />
           </div>
           <div className="pointer-events-auto flex gap-2 group-data-keyboard:hidden">
-            <AnswerToggle label="No maybes" checked={noMaybe} onChange={setNoMaybe} />
-            <AnswerToggle label="No rude answers" checked={noRude} onChange={setNoRude} />
+            <AnswerToggle label={t.home.noMaybes} checked={noMaybe} onChange={setNoMaybe} />
+            <AnswerToggle label={t.home.noRude} checked={noRude} onChange={setNoRude} />
           </div>
           <p className="text-xs tracking-[0.2em] text-violet-200/50 uppercase select-none group-data-keyboard:hidden">
-            {canShake ? "or shake your phone" : "or tap it"}
+            {canShake ? t.home.orShake : t.home.orTap}
           </p>
         </div>
 
         {!keyboard && (
           <p className="pointer-events-none absolute right-[max(1rem,env(safe-area-inset-right))] bottom-[max(0.75rem,env(safe-area-inset-bottom))] text-[9px] tracking-[0.2em] text-violet-200/30 uppercase select-none">
-            Powered by Jev ·{" "}
+            {t.home.poweredBy} ·{" "}
             <a
               href="https://github.com/raulmouzo/magic-8"
               target="_blank"
