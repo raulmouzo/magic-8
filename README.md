@@ -1,9 +1,10 @@
 # Magic 8-Ball
 
-An interactive Magic 8-Ball built with Next.js and three.js. Ask a question
-(button or tap on the ball) and an answer rises out of the liquid, while the
-animated shard background reacts to what the ball is doing.
+An interactive Magic 8-Ball built with Next.js and three.js. Ask a question and
+an answer rises out of the liquid, while the animated shard background reacts
+to what the ball is doing.
 
+![Magic 8-Ball screenshot](docs/screenshot.webp)
 
 ## Features
 
@@ -21,6 +22,46 @@ animated shard background reacts to what the ball is doing.
   URL (`/en`, `/es`, `/gl`). Texts live in `app/[lang]/dictionaries/`.
 - **Installable** — add it to your home screen; it runs full-screen with an
   app icon and web app manifest.
+
+## Tech stack
+
+- [Next.js](https://nextjs.org/) 16 + React 19 + TypeScript
+- [three.js](https://threejs.org/) via React Three Fiber and drei
+- Tailwind CSS 4
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 20.9 or later
+- [pnpm](https://pnpm.io/)
+
+### Installation
+
+```bash
+git clone https://github.com/raulmouzo/magic-8.git
+cd magic-8
+pnpm install
+```
+
+### Environment variables
+
+| Variable             | Required | Description                                                      |
+| -------------------- | -------- | ---------------------------------------------------------------- |
+| `AI_GATEWAY_API_KEY` | No       | Enables smart answers. Without it, only random answers are used. |
+
+Put it in a `.env.local` file at the project root.
+
+### Scripts
+
+| Command      | Description                      |
+| ------------ | -------------------------------- |
+| `pnpm dev`   | Start the development server     |
+| `pnpm build` | Build for production             |
+| `pnpm start` | Serve the production build       |
+| `pnpm lint`  | Run ESLint                       |
+
+The app runs at [http://localhost:3000](http://localhost:3000).
 
 ## Credits
 
