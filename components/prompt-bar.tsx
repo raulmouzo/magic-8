@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useDictionary } from "@/components/dictionary-provider";
 
 const LINE_HEIGHT = 22;
 const MAX_ROWS = 4;
@@ -41,6 +42,7 @@ export function PromptBar({
   maxLength,
   onHighlightChange,
 }: Props) {
+  const { promptBar: t } = useDictionary();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -126,7 +128,7 @@ export function PromptBar({
         enterKeyHint="send"
         maxLength={maxLength}
         placeholder={placeholder}
-        aria-label="Your question"
+        aria-label={t.question}
         // 16px on touch screens stops iOS from zooming in on focus. The
         // scrollbar is a thin violet thumb with no track; the ::-webkit
         // rules cover Safari, which ignores scrollbar-color.
@@ -141,7 +143,7 @@ export function PromptBar({
           send();
         }}
         disabled={disabled}
-        aria-label={empty ? "Or go random" : "Ask the ball"}
+        aria-label={empty ? t.goRandom : t.ask}
         data-empty={empty || undefined}
         className="group flex h-8 flex-none cursor-pointer items-center rounded-full bg-violet-50 px-2 text-violet-950 shadow-[0_0_20px_-4px_#A855F7] transition hover:bg-white active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300 disabled:cursor-not-allowed disabled:bg-violet-200/15 disabled:text-violet-200/40 disabled:shadow-none motion-reduce:active:scale-100"
       >
@@ -149,7 +151,7 @@ export function PromptBar({
           aria-hidden="true"
           className="max-w-0 overflow-hidden text-xs font-semibold tracking-[0.12em] whitespace-nowrap sm:tracking-[0.2em] uppercase opacity-0 transition-all duration-300 group-data-empty:max-w-36 group-data-empty:pr-2 group-data-empty:pl-2 group-data-empty:opacity-100 motion-reduce:transition-none max-[22rem]:text-[11px] max-[22rem]:tracking-[0.05em] max-[22rem]:group-data-empty:pr-1 max-[22rem]:group-data-empty:pl-1"
         >
-          Or go random
+          {t.goRandom}
         </span>
         <svg
           viewBox="0 0 24 24"

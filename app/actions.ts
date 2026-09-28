@@ -5,7 +5,7 @@ import { getAiGatewayKey } from "@/lib/ai-gateway";
 
 const MAX_QUESTION_LENGTH = 200;
 
-// What Jev reads to pick each category; the keys match ANSWERS.
+// What Jev reads to pick each category; the keys match AnswerCategory.
 const CRITERIA: Record<AnswerCategory, string> = {
   yes: "a yes/no question whose most likely or most hopeful answer is yes",
   no: "a yes/no question whose most likely answer is no",
@@ -71,7 +71,7 @@ export async function classifyQuestion(
         category: {
           type: "choice",
           instructions:
-            "Which kind of Magic 8-Ball answer fits this question best? For a yes/no question, commit to yes or no when you have some reasonable basis to lean one way; it doesn't need to be strong or certain, just more than a coin flip. Pick unsure only as a last resort. Pick rude only when the question is clearly offensive; when in doubt, answer it normally.",
+            "Which kind of Magic 8-Ball answer fits this question best? The question may be in any language, such as English, Spanish or Galician. For a yes/no question, commit to yes or no when you have some reasonable basis to lean one way; it doesn't need to be strong or certain, just more than a coin flip. Pick unsure only as a last resort. Pick rude only when the question is clearly offensive; when in doubt, answer it normally.",
           criteria,
         },
       },

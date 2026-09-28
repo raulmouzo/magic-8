@@ -5,14 +5,16 @@ import {
   Group,
   MathUtils,
   Mesh,
+  type MeshPhysicalMaterial,
   PointLight,
   Vector2,
   type Vector2Like,
   Vector3,
 } from "three";
 import {
+  type Answer,
   type AnswerCategory,
-  ZOOM_QUIPS,
+  type AnswerSet,
   createAnswerTexture,
   createSigilTexture,
   randomAnswer,
@@ -28,11 +30,14 @@ import {
 } from "./geometry";
 import {
   PALETTE,
+  type ShaderQuality,
+  applyShaderQuality,
   createBallUniforms,
   createBezelMaterial,
   createHaloMaterial,
   createLensMaterial,
   createLiquidMaterial,
+  createReflectiveLensMaterial,
   createShellMaterial,
   createWellMaterial,
 } from "./materials";
@@ -55,12 +60,19 @@ type Timeline = {
 };
 
 type BusyListener = (busy: boolean) => void;
-export type AnswerPicker = () => string;
-/** What to show: exact text, a random answer from a category, or (omitted) the answer picker's choice. */
-export type AskRequest = string | { category: AnswerCategory };
+export type SceneQuality = ShaderQuality & { refraction: boolean };
+export type AnswerPicker = () => Answer;
+/**
+ * What to show: exact text, an answer from a category (random unless `text`
+ * is given), or (omitted) the answer picker's choice.
+ */
+export type AskRequest = string | { category: AnswerCategory; text?: string };
+/** The texts the ball shows, in the page's language. */
+export type BallTexts = { answers: AnswerSet; zoomQuips: readonly string[] };
 export type BallEvents = {
   onAsk?: () => void;
-  onReveal?: (answer: string) => void;
+  /** `category` is missing when `ask` was given exact text. */
+  onReveal?: (answer: string, category?: AnswerCategory) => void;
   onRest?: () => void;
 };
 
@@ -106,6 +118,18 @@ export class MagicEightBallScene {
   private readonly shardLights = SHARD_LIGHTS.map((l) => new PointLight(l.color, 0));
 
   private readonly uniforms = createBallUniforms();
+  private readonly shell: Mesh<ReturnType<typeof createShellGeometry>, MeshPhysicalMaterial>;
+  private readonly bezel: Mesh<ReturnType<typeof createBezelGeometry>, MeshPhysicalMaterial>;
+  private readonly liquid: Mesh<
+    ReturnType<typeof createLiquidGeometry>,
+    ReturnType<typeof createLiquidMaterial>
+  >;
+  private readonly lens: Mesh<ReturnType<typeof createLensGeometry>, MeshPhysicalMaterial>;
+  // Both lenses are kept, so switching quality back and forth doesn't rebuild them.
+  private readonly lensMaterials = {
+    refracting: createLensMaterial(),
+    reflective: createReflectiveLensMaterial(),
+  };
   private readonly appear = { value: 0 };
   private readonly approach = { value: 0 };
   private readonly facing = { value: 0 };
@@ -128,20 +152,27 @@ export class MagicEightBallScene {
   private readonly tilt = new Vector2();
   private drawText: () => CanvasTexture = createSigilTexture;
   private textTexture: CanvasTexture | null = null;
-  private pickAnswer: AnswerPicker = () => randomAnswer();
+  private texts: BallTexts;
+  private pickAnswer: AnswerPicker = () => randomAnswer(this.texts.answers);
   private timeline: Timeline | null = null;
   // Busy until start(), so nothing can be asked before the ball is on screen.
   private busy = true;
   private busyListener: BusyListener | null = null;
 
-  constructor() {
+  constructor(texts: BallTexts, quality: SceneQuality) {
+    this.texts = texts;
+    this.shell = new Mesh(createShellGeometry(), createShellMaterial(this.uniforms));
+    this.bezel = new Mesh(createBezelGeometry(), createBezelMaterial());
+    this.liquid = new Mesh(createLiquidGeometry(), createLiquidMaterial(this.uniforms));
+    this.lens = new Mesh(createLensGeometry(), this.lensMaterials.refracting);
     this.root.add(
-      new Mesh(createShellGeometry(), createShellMaterial(this.uniforms)),
-      new Mesh(createBezelGeometry(), createBezelMaterial()),
+      this.shell,
+      this.bezel,
       new Mesh(createWellGeometry(), createWellMaterial()),
-      new Mesh(createLiquidGeometry(), createLiquidMaterial(this.uniforms)),
-      new Mesh(createLensGeometry(), createLensMaterial()),
+      this.liquid,
+      this.lens,
     );
+    this.setQuality(quality);
 
     const halo = new Mesh(createHaloGeometry(), createHaloMaterial(this.uniforms));
     halo.raycast = () => {}; // clicks on the glow should not count as clicks on the ball
@@ -162,6 +193,16 @@ export class MagicEightBallScene {
       ],
       [],
     );
+  }
+
+  /** Materials whose defines change recompile on their next render. */
+  setQuality(quality: SceneQuality): void {
+    applyShaderQuality(this.shell.material, quality, { wear: true });
+    applyShaderQuality(this.bezel.material, quality);
+    applyShaderQuality(this.liquid.material, quality);
+    this.lens.material = quality.refraction
+      ? this.lensMaterials.refracting
+      : this.lensMaterials.reflective;
   }
 
   setBusyListener(listener: BusyListener | null): void {
@@ -199,7 +240,12 @@ export class MagicEightBallScene {
   }
 
   setAnswerPicker(picker: AnswerPicker | null): void {
-    this.pickAnswer = picker ?? (() => randomAnswer());
+    this.pickAnswer = picker ?? (() => randomAnswer(this.texts.answers));
+  }
+
+  /** Used from the next answer or quip on. */
+  setTexts(texts: BallTexts): void {
+    this.texts = texts;
   }
 
   /** Redraws the current text, e.g. once the web font has loaded. */
@@ -229,15 +275,17 @@ export class MagicEightBallScene {
         {
           at: ANSWER_AT,
           run: () => {
-            const text =
+            const { text, category }: { text: string; category?: AnswerCategory } =
               request === undefined
                 ? this.pickAnswer()
                 : typeof request === "string"
-                  ? request
-                  : randomAnswer(request.category);
+                  ? { text: request }
+                  : request.text !== undefined
+                    ? { text: request.text, category: request.category }
+                    : randomAnswer(this.texts.answers, request.category);
             this.setText(() => createAnswerTexture(text));
             this.uniforms.quip.value = 0;
-            this.events.onReveal?.(text);
+            this.events.onReveal?.(text, category);
           },
         },
         { at: ANSWER_AT + 1400, run: () => this.setBusy(false) },
@@ -291,6 +339,9 @@ export class MagicEightBallScene {
       object.geometry.dispose();
       object.material.dispose();
     });
+    // The lens that isn't in use isn't in the scene either.
+    this.lensMaterials.refracting.dispose();
+    this.lensMaterials.reflective.dispose();
     this.textTexture?.dispose();
   }
 
@@ -338,7 +389,7 @@ export class MagicEightBallScene {
       this.closeZoomTime = this.zoom > QUIP_ZOOM.show ? this.closeZoomTime + deltaSeconds : 0;
       if (this.closeZoomTime < QUIP_ZOOM.delay) return;
       this.closeZoomTime = 0;
-      const options = ZOOM_QUIPS.filter((quip) => quip !== this.lastQuip);
+      const options = this.texts.zoomQuips.filter((quip) => quip !== this.lastQuip);
       const quip = options[Math.floor(Math.random() * options.length)];
       this.lastQuip = quip;
       this.textBeforeQuip = this.drawText;

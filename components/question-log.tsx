@@ -2,35 +2,35 @@
 
 // The question being asked, above the ball, and the last few answers once it's done.
 
-import { ANSWERS, type AnswerCategory } from "@/components/magic-eight-ball/answers";
+import { useDictionary } from "@/components/dictionary-provider";
+import type { AnswerCategory } from "@/components/magic-eight-ball/answers";
 
 export type LogEntry = {
   id: number;
   /** Null when the ball was asked without a question. */
   question: string | null;
   answer?: string;
+  /** Missing when the ball was given exact text. */
+  category?: AnswerCategory;
 };
 
-const LABELS: Record<AnswerCategory, { text: string; className: string }> = {
-  yes: { text: "Yes", className: "bg-emerald-400/15 text-emerald-200" },
-  no: { text: "No", className: "bg-rose-400/15 text-rose-200" },
-  unsure: { text: "Maybe", className: "bg-amber-300/15 text-amber-100" },
-  notYesNo: { text: "Rephrase", className: "bg-sky-400/15 text-sky-200" },
-  rude: { text: "Sassy", className: "bg-fuchsia-400/15 text-fuchsia-200" },
-  sensitive: { text: "Pass", className: "bg-violet-200/10 text-violet-200/70" },
+const LABEL_STYLES: Record<AnswerCategory, string> = {
+  yes: "bg-emerald-400/15 text-emerald-200",
+  no: "bg-rose-400/15 text-rose-200",
+  unsure: "bg-amber-300/15 text-amber-100",
+  notYesNo: "bg-sky-400/15 text-sky-200",
+  rude: "bg-fuchsia-400/15 text-fuchsia-200",
+  sensitive: "bg-violet-200/10 text-violet-200/70",
 };
 
-const categoryOf = (answer: string) =>
-  (Object.keys(ANSWERS) as AnswerCategory[]).find((category) =>
-    ANSWERS[category].includes(answer),
-  );
-
-const QuestionText = ({ question, className }: { question: string | null; className: string }) =>
-  question ? (
+function QuestionText({ question, className }: { question: string | null; className: string }) {
+  const { questionLog: t } = useDictionary();
+  return question ? (
     <p className={className}>{question}</p>
   ) : (
-    <p className={`${className} italic opacity-60`}>Random</p>
+    <p className={`${className} italic opacity-60`}>{t.random}</p>
   );
+}
 
 type Props = {
   current: LogEntry | null;
@@ -40,6 +40,7 @@ type Props = {
 };
 
 export function QuestionLog({ current, history, compact = false }: Props) {
+  const { questionLog: t } = useDictionary();
   if (current) {
     return (
       <div
@@ -52,7 +53,7 @@ export function QuestionLog({ current, history, compact = false }: Props) {
         />
         {!current.answer && (
           // Waiting for the ball.
-          <span className="flex gap-1" aria-label="The ball is thinking">
+          <span className="flex gap-1" aria-label={t.thinking}>
             {[0, 150, 300].map((delay) => (
               <i
                 key={delay}
@@ -70,12 +71,11 @@ export function QuestionLog({ current, history, compact = false }: Props) {
 
   return (
     <ul
-      aria-label="Recent answers"
+      aria-label={t.recent}
       className="flex w-full max-w-sm flex-col gap-2 transition duration-500 starting:opacity-0"
     >
       {history.map((entry, index) => {
-        const category = entry.answer ? categoryOf(entry.answer) : undefined;
-        const label = category ? LABELS[category] : null;
+        const { category } = entry;
         return (
           <li
             key={entry.id}
@@ -91,11 +91,11 @@ export function QuestionLog({ current, history, compact = false }: Props) {
               />
               <p className="truncate text-sm text-violet-50">{entry.answer}</p>
             </div>
-            {label && (
+            {category && (
               <span
-                className={`flex-none rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-[0.15em] uppercase ${label.className}`}
+                className={`flex-none rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-[0.15em] uppercase ${LABEL_STYLES[category]}`}
               >
-                {label.text}
+                {t.labels[category]}
               </span>
             )}
           </li>

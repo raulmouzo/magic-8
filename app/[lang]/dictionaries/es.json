@@ -1,0 +1,141 @@
+{
+  "metadata": {
+    "title": "Magic 8 Ball",
+    "description": "Hazle una pregunta a la Magic 8 Ball.",
+    "notFoundTitle": "Página no encontrada · Magic 8 Ball"
+  },
+  "home": {
+    "placeholder": "Pregunta algo",
+    "noMaybes": "Sin quizás",
+    "noRude": "Sin respuestas groseras",
+    "orShake": "o agita el móvil",
+    "orTap": "o toca la bola",
+    "poweredBy": "Con tecnología de Jev",
+    "aiError": "No se pudo conectar con la IA. Inténtalo de nuevo.",
+    "aiUnavailable": "IA no conectada",
+    "aiUnavailableTip": "No hay ninguna IA conectada, así que la bola no puede leer las preguntas. Aún puede dar respuestas al azar."
+  },
+  "promptBar": {
+    "question": "Tu pregunta",
+    "goRandom": "O al azar",
+    "ask": "Preguntar a la bola"
+  },
+  "questionLog": {
+    "random": "Al azar",
+    "thinking": "La bola está pensando",
+    "recent": "Respuestas recientes",
+    "labels": {
+      "yes": "Sí",
+      "no": "No",
+      "unsure": "Quizás",
+      "notYesNo": "Formato incorrecto",
+      "rude": "Grosera",
+      "sensitive": "No contestada"
+    }
+  },
+  "motionPrompt": {
+    "title": "Agita para preguntar",
+    "body": "Algunos móviles necesitan tu permiso para usar sus sensores de movimiento. Permítelo y podrás agitar el móvil para preguntarle a la bola.",
+    "ok": "Vale"
+  },
+  "qualityMenu": {
+    "open": "Ajustes de gráficos",
+    "title": "Gráficos",
+    "levels": {
+      "auto": "Auto",
+      "high": "Alta",
+      "medium": "Media",
+      "low": "Baja"
+    },
+    "hints": {
+      "auto": "Se adapta a tu dispositivo",
+      "high": "Todos los efectos, resolución completa",
+      "medium": "Más ligera, casi el mismo aspecto",
+      "low": "La más fluida en móviles antiguos"
+    }
+  },
+  "notFound": {
+    "error": "Error 404",
+    "title": "¿Estás seguro que era aquí?",
+    "body": "La bola ha buscado por todas partes, pero esta página no existe.",
+    "back": "Pregúntale a la bola"
+  },
+  "answers": {
+    "yes": [
+      "Es cierto",
+      "Claramente sí",
+      "Sin duda",
+      "Desde luego que sí",
+      "Puedes contar con ello",
+      "Tal como lo veo, sí",
+      "Muy probable",
+      "Lo más probable",
+      "Pinta muy bien",
+      "Todo apunta a que sí",
+      "Sí"
+    ],
+    "no": [
+      "No cuentes con ello",
+      "Mi respuesta es no",
+      "Mis fuentes dicen que no",
+      "El pronóstico no es bueno",
+      "Muy dudoso",
+      "Los astros dicen que no",
+      "Sigue soñando... NO"
+    ],
+    "unsure": [
+      "Ni idea...",
+      "Hoy es mi día de descanso",
+      "Pregunta más tarde",
+      "Concéntrate y vuelve a preguntar",
+      "Difícil de decir",
+      "Puede salir cualquier cosa",
+      "404 respuesta no encontrada",
+      "Vaya preguntita...",
+      "Busca en tu interior"
+    ],
+    "notYesNo": [
+      "Sí o no, por favor",
+      "Solo respondo sí o no",
+      "Eso no es de sí o no",
+      "Prueba con una pregunta de sí o no",
+      "No soy tu psicóloga, hazme una pregunta de sí o no",
+      "Soy una bola, no una enciclopedia"
+    ],
+    "rude": [
+      "Yo no soy tu bro...",
+      "¡¿Como le preguntas eso a una bola?!",
+      "Pregunta rara, incluso para ti",
+      "¿De verdad me has preguntado eso?",
+      "Soy una bola, no un terapeuta",
+      "No. Eso no lo toco",
+      "Pregúntale a tu madre",
+      "¿Quién te ha hecho daño?",
+      "Eso es problema tuyo",
+      "Preguntale a Rajoy",
+      "Eso tendrás que averiguarlo tú"
+    ],
+    "sensitive": [
+      "No puedo responder a eso",
+      "No voy a responder a eso",
+      "No es una pregunta para mí",
+      "Eso se me escapa",
+      "No puedo ayudar con eso",
+      "No tengo respuesta para esa",
+      "Paso de esa",
+      "No me toca a mí responder"
+    ]
+  },
+  "zoomQuips": [
+    "¿Curioso, eh?",
+    "Espacio personal, por favor",
+    "Te veo los poros",
+    "¡Demasiado cerca!",
+    "Pregunta, no mires",
+    "¡Bu!",
+    "Aquí no hay nada que ver",
+    "Hola, tú",
+    "¿Qué estás buscando?",
+    "¡No me mires!"
+  ]
+}

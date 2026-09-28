@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { classifyQuestion } from "@/app/actions";
+import { useDictionary } from "@/components/dictionary-provider";
 import { type AnswerCategory, randomAnswer } from "@/components/magic-eight-ball/answers";
 import AeroShards, { type AeroShardsHandle, type AeroShardsProps } from "@/components/aero-shards";
 import {
@@ -11,8 +12,10 @@ import {
   useMotionAccess,
   useShake,
 } from "@/components/magic-eight-ball/MagicEightBall";
+import { type QualityLevel, useGraphicsQuality } from "@/components/graphics-quality";
 import { MotionPermissionPrompt, useMotionPromptSeen } from "@/components/motion-permission-prompt";
 import { PromptBar } from "@/components/prompt-bar";
+import { QualityMenu } from "@/components/quality-menu";
 import { type LogEntry, QuestionLog } from "@/components/question-log";
 import { useKeyboardViewport } from "@/components/use-keyboard-viewport";
 
@@ -52,6 +55,25 @@ const BACKGROUND: Record<Screen, Partial<AeroShardsProps>> = {
   desktop: { placement: "full" },
 };
 
+// Caps on top of the screen's settings, which may already be lower. Low
+// also draws fewer shards; each one keeps its look.
+const BACKGROUND_LIMITS: Record<QualityLevel, { maxDpr: number; maxFps: number; density: number }> = {
+  high: { maxDpr: Infinity, maxFps: Infinity, density: 1.5 },
+  medium: { maxDpr: 1.5, maxFps: 60, density: 1.5 },
+  low: { maxDpr: 1, maxFps: 30, density: 1 },
+};
+
+const backgroundSettings = (screen: Screen, quality: QualityLevel): Partial<AeroShardsProps> => {
+  const base = BACKGROUND[screen];
+  const limits = BACKGROUND_LIMITS[quality];
+  return {
+    ...base,
+    maxDpr: Math.min(base.maxDpr ?? Infinity, limits.maxDpr),
+    maxFps: Math.min(base.maxFps ?? Infinity, limits.maxFps),
+    density: Math.min(base.density ?? limits.density, limits.density),
+  };
+};
+
 // Tailwind's md and lg breakpoints.
 const TABLET_QUERY = "(width >= 48rem)";
 const DESKTOP_QUERY = "(width >= 64rem)";
@@ -68,7 +90,10 @@ const getScreen = (): Screen =>
       : "mobile";
 
 export function Home({ aiConfigured }: { aiConfigured: boolean }) {
+  const t = useDictionary();
+  const ballTexts = useMemo(() => ({ answers: t.answers, zoomQuips: t.zoomQuips }), [t]);
   const screen = useSyncExternalStore(subscribeToScreen, getScreen, () => "desktop" as const);
+  const graphics = useGraphicsQuality();
   const ballRef = useRef<MagicEightBallHandle>(null);
   const shardsRef = useRef<AeroShardsHandle>(null);
   const [busy, setBusy] = useState(true);
@@ -132,8 +157,12 @@ export function Home({ aiConfigured }: { aiConfigured: boolean }) {
   useEffect(() => () => clearTimeout(archiveTimer.current), []);
 
   const handleReveal = useCallback(
-    (answer: string) =>
-      setCurrentEntry({ ...(currentRef.current ?? { id: nextId.current++, question: null }), answer }),
+    (answer: string, category?: AnswerCategory) =>
+      setCurrentEntry({
+        ...(currentRef.current ?? { id: nextId.current++, question: null }),
+        answer,
+        category,
+      }),
     [setCurrentEntry],
   );
   const handleRest = useCallback(() => {
@@ -164,7 +193,7 @@ export function Home({ aiConfigured }: { aiConfigured: boolean }) {
     archive();
     const entry: LogEntry = { id: nextId.current++, question: question.trim() || null };
     if (!entry.question) {
-      if (ballRef.current?.ask(randomAnswer(undefined, excluded))) setCurrentEntry(entry);
+      if (ballRef.current?.ask(randomAnswer(t.answers, undefined, excluded))) setCurrentEntry(entry);
       return;
     }
     setCurrentEntry(entry);
@@ -211,7 +240,7 @@ export function Home({ aiConfigured }: { aiConfigured: boolean }) {
             interaction="none"
             onReady={handleBackgroundReady}
             onError={handleBackgroundReady}
-            {...BACKGROUND[screen]}
+            {...backgroundSettings(screen, graphics.level)}
             speed={thinking ? THINKING_SPEED : IDLE_SPEED}
           />
         </div>
@@ -237,6 +266,9 @@ export function Home({ aiConfigured }: { aiConfigured: boolean }) {
         >
           <MagicEightBall
             ref={ballRef}
+            texts={ballTexts}
+            quality={graphics.level}
+            onPerformanceChange={graphics.reportPerformance}
             canStart={backgroundReady}
             buttonHighlighted={buttonHighlighted && !busy}
             onBusyChange={setBusy}
@@ -262,7 +294,7 @@ export function Home({ aiConfigured }: { aiConfigured: boolean }) {
               role="alert"
               className="rounded-full border border-rose-300/20 bg-rose-950/40 px-3 py-1 text-xs text-rose-100 backdrop-blur-md"
             >
-              Couldn’t reach the AI. Try again.
+              {t.home.aiError}
             </p>
           )}
           <div className="pointer-events-auto w-full max-w-sm">
@@ -275,24 +307,37 @@ export function Home({ aiConfigured }: { aiConfigured: boolean }) {
               onSend={handleSend}
               disabled={busy || classifying}
               inputDisabled={!aiReady}
-              leading={aiReady ? undefined : <AiUnavailableWarning />}
+              leading={
+                aiReady ? undefined : (
+                  <AiUnavailableWarning label={t.home.aiUnavailable} tip={t.home.aiUnavailableTip} />
+                )
+              }
               maxLength={200}
-              placeholder={aiReady ? "Ask something" : "AI not connected"}
+              placeholder={aiReady ? t.home.placeholder : t.home.aiUnavailable}
               onHighlightChange={setButtonHighlighted}
             />
           </div>
           <div className="pointer-events-auto flex gap-2 group-data-keyboard:hidden">
-            <AnswerToggle label="No maybes" checked={noMaybe} onChange={setNoMaybe} />
-            <AnswerToggle label="No rude answers" checked={noRude} onChange={setNoRude} />
+            <AnswerToggle label={t.home.noMaybes} checked={noMaybe} onChange={setNoMaybe} />
+            <AnswerToggle label={t.home.noRude} checked={noRude} onChange={setNoRude} />
           </div>
           <p className="text-xs tracking-[0.2em] text-violet-200/50 uppercase select-none group-data-keyboard:hidden">
-            {canShake ? "or shake your phone" : "or tap it"}
+            {canShake ? t.home.orShake : t.home.orTap}
           </p>
         </div>
 
         {!keyboard && (
+          <QualityMenu
+            preference={graphics.preference}
+            autoLevel={graphics.autoLevel}
+            onChange={graphics.setPreference}
+            className="absolute bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))]"
+          />
+        )}
+
+        {!keyboard && (
           <p className="pointer-events-none absolute right-[max(1rem,env(safe-area-inset-right))] bottom-[max(0.75rem,env(safe-area-inset-bottom))] text-[9px] tracking-[0.2em] text-violet-200/30 uppercase select-none">
-            Powered by Jev ·{" "}
+            {t.home.poweredBy} ·{" "}
             <a
               href="https://github.com/raulmouzo/magic-8"
               target="_blank"
@@ -334,12 +379,12 @@ function AnswerToggle({
 
 // Shown in the prompt bar while there's no AI; the bubble opens on hover,
 // keyboard focus or a tap.
-function AiUnavailableWarning() {
+function AiUnavailableWarning({ label, tip }: { label: string; tip: string }) {
   return (
     <span className="group/warning relative flex flex-none self-center">
       <button
         type="button"
-        aria-label="AI not connected"
+        aria-label={label}
         aria-describedby="ai-unavailable-tip"
         onClick={(event) => event.stopPropagation()}
         className="flex cursor-help rounded-full text-amber-300 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300"
@@ -363,7 +408,7 @@ function AiUnavailableWarning() {
         role="tooltip"
         className="invisible absolute bottom-full -left-2 mb-3 w-56 rounded-2xl border border-amber-200/20 bg-violet-950/90 px-3 py-2 text-center text-xs leading-snug text-violet-50 opacity-0 shadow-lg backdrop-blur-md transition group-focus-within/warning:visible group-focus-within/warning:opacity-100 group-hover/warning:visible group-hover/warning:opacity-100 after:absolute after:top-full after:left-[18px] after:-translate-x-1/2 after:border-6 after:border-transparent after:border-t-violet-950/90"
       >
-        No AI is connected, so the ball can’t read questions. It can still give random answers.
+        {tip}
       </span>
     </span>
   );

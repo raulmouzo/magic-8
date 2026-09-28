@@ -16,6 +16,9 @@ animated shard background reacts to what the ball is doing.
   only random answers are available.
 - **Question log** — the current question floats above the ball, then the
   three most recent answers stay on screen for reference.
+- **English, Spanish and Galician** — the language follows the browser's
+  (and so the system's) language, falling back to English; each has its own
+  URL (`/en`, `/es`, `/gl`). Texts live in `app/[lang]/dictionaries/`.
 - **Installable** — add it to your home screen; it runs full-screen with an
   app icon and web app manifest.
 
