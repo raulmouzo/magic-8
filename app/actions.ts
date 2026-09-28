@@ -1,6 +1,7 @@
 "use server";
 
 import type { AnswerCategory } from "@/components/magic-eight-ball/answers";
+import { getAiGatewayKey } from "@/lib/ai-gateway";
 
 const MAX_QUESTION_LENGTH = 200;
 
@@ -48,8 +49,8 @@ export async function classifyQuestion(
   exclude: AnswerCategory[] = [],
 ): Promise<ClassifyResult> {
   // Reachable by direct POST, so the argument may not be a string.
-  console.log("[m8] classifyQuestion", { question, hasKey: Boolean(process.env.AI_GATEWAY_API_KEY) });
-  const apiKey = process.env.AI_GATEWAY_API_KEY;
+  const apiKey = getAiGatewayKey();
+  console.log("[m8] classifyQuestion", { question, hasKey: Boolean(apiKey) });
   if (!apiKey) return { ok: false, error: "noKey" };
   if (typeof question !== "string") return { ok: false, error: "invalid" };
   const state = question.trim().slice(0, MAX_QUESTION_LENGTH);
