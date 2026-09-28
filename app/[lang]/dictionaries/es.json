@@ -54,6 +54,9 @@
       "low": "La más fluida en móviles antiguos"
     }
   },
+  "languageSwitcher": {
+    "label": "Idioma"
+  },
   "notFound": {
     "error": "Error 404",
     "title": "¿Estás seguro que era aquí?",

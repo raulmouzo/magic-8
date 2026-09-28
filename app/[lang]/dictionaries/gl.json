@@ -61,6 +61,10 @@
     }
   },
 
+  "languageSwitcher": {
+    "label": "Idioma"
+  },
+
   "notFound": {
     "error": "Erro 404",
     "title": "Aquí non é, meu",
