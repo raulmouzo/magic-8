@@ -8,13 +8,13 @@ export type BallQuality = ShaderQuality & {
   maxFps: number;
   /** Real refraction through the lens, or reflections only (no second scene render). */
   refraction: boolean;
-  /** Size of the texture the refracting lens samples, relative to the canvas. */
-  transmissionScale: number;
 };
 
-// "high" is the original look. The lower levels drop what's least visible
-// at their pixel ratio first: noise octaves finer than a pixel, then the
-// wear details and the lens refraction.
+// "high" is the original look and "medium" keeps every effect of it, only at
+// a lower pixel ratio and frame rate: the answer is read through the lens,
+// so a lower-resolution refraction blurs it. "low" swaps the refraction for
+// reflections only (the text is then drawn directly, so it stays sharp) and
+// drops the finest shell details.
 export const BALL_QUALITY: Record<QualityLevel, BallQuality> = {
   high: {
     maxDpr: 2,
@@ -22,15 +22,13 @@ export const BALL_QUALITY: Record<QualityLevel, BallQuality> = {
     noiseOctaves: 6,
     surfaceWear: true,
     refraction: true,
-    transmissionScale: 1,
   },
   medium: {
     maxDpr: 1.5,
     maxFps: 60,
-    noiseOctaves: 4,
+    noiseOctaves: 6,
     surfaceWear: true,
     refraction: true,
-    transmissionScale: 0.5,
   },
   low: {
     maxDpr: 1,
@@ -38,6 +36,5 @@ export const BALL_QUALITY: Record<QualityLevel, BallQuality> = {
     noiseOctaves: 3,
     surfaceWear: false,
     refraction: false,
-    transmissionScale: 0.5,
   },
 };

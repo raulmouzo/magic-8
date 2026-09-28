@@ -207,7 +207,6 @@ export function Ball({
     const now = clock.elapsedTime;
     if (now - lastDraw.current < 1 / quality.maxFps - FRAME_SLACK) return;
     lastDraw.current = now;
-    renderer.transmissionResolutionScale = quality.transmissionScale;
     renderer.render(frameScene, frameCamera);
   }, 1);
 
