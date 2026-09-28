@@ -146,6 +146,26 @@ const wear = /* glsl */ `
   }
 `;
 
+export type ShaderQuality = {
+  /** Octaves of the fbm noise (6 at most); the high ones are finer than a pixel on small screens. */
+  noiseOctaves: number;
+  /** Scratches and nicks on the shell, the most expensive part of its shader. */
+  surfaceWear: boolean;
+};
+
+/** Updates the quality defines; three recompiles the material on its next render. */
+export const applyShaderQuality = (
+  material: MeshPhysicalMaterial | ShaderMaterial,
+  { noiseOctaves, surfaceWear }: ShaderQuality,
+  { wear = false } = {},
+) => {
+  const defines: Record<string, unknown> = { ...material.defines, NUM_OCTAVES: noiseOctaves };
+  if (wear && surfaceWear) defines.SURFACE_WEAR = "";
+  else delete defines.SURFACE_WEAR;
+  material.defines = defines;
+  material.needsUpdate = true;
+};
+
 /** The clearcoat keeps the smooth normal, like varnish over a textured body. */
 export const createShellMaterial = (uniforms: BallUniforms) => {
   const material = new MeshPhysicalMaterial({
@@ -179,13 +199,17 @@ export const createShellMaterial = (uniforms: BallUniforms) => {
         "#include <color_fragment>",
         `#include <color_fragment>
         diffuseColor.rgb *= 0.9 + fbm(vObjectPosition * 1.6) * 0.2;
-        float wearPixel = length(fwidth(vObjectPosition));
         // x: scratches, y: nicks, z: haze.
+        #ifdef SURFACE_WEAR
+        float wearPixel = length(fwidth(vObjectPosition));
         vec3 wearAmount = vec3(
           surfaceScratches(vObjectPosition),
           surfaceNicks(vObjectPosition, wearPixel),
           surfaceHaze(vObjectPosition)
         );
+        #else
+        vec3 wearAmount = vec3(0.0, 0.0, surfaceHaze(vObjectPosition));
+        #endif
         diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.5 + 0.04, wearAmount.x * 0.55);
         diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 0.6 + 0.3, wearAmount.y * 0.6);
         diffuseColor.rgb += wearAmount.z * 0.05;`,
@@ -268,17 +292,38 @@ export const createWellMaterial = () =>
     side: BackSide,
   });
 
+const LENS_SURFACE = {
+  roughness: 0.07,
+  clearcoat: 0.5,
+  clearcoatRoughness: 0.05,
+  envMapIntensity: 0.6,
+  specularIntensity: 0.7,
+};
+
+/**
+ * Refracting glass. Transmission makes three render the rest of the scene a
+ * second time, into a texture the lens samples.
+ */
 export const createLensMaterial = () =>
   new MeshPhysicalMaterial({
+    ...LENS_SURFACE,
     transmission: 1,
     thickness: 0.4,
     ior: 1.45,
-    roughness: 0.07,
-    clearcoat: 0.5,
-    clearcoatRoughness: 0.05,
-    envMapIntensity: 0.6,
-    specularIntensity: 0.7,
     attenuationColor: new Color(PALETTE.mist),
+  });
+
+/**
+ * The cheap stand-in: black, so it adds only its reflections on top of the
+ * liquid, which shows through unrefracted. No second scene render.
+ */
+export const createReflectiveLensMaterial = () =>
+  new MeshPhysicalMaterial({
+    ...LENS_SURFACE,
+    color: 0x000000,
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
   });
 
 /** The die's outline layers are offset by the view angle so it reads as depth. */
