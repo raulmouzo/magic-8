@@ -1,9 +1,8 @@
-import { connection } from "next/server";
 import { Home } from "./home";
 
-export default async function Page() {
-  // Read the key per request, not at build time, so adding or removing it
-  // takes effect without a rebuild. Only whether it's set reaches the client.
-  await connection();
+export default function Page() {
+  // Read at build time, so the page stays static; on Vercel a changed key
+  // needs a redeploy anyway. A key revoked later is caught by the first
+  // question. Only whether it's set reaches the client.
   return <Home aiConfigured={Boolean(process.env.AI_GATEWAY_API_KEY)} />;
 }
