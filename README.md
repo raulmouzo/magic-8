@@ -10,16 +10,22 @@ to what the ball is doing.
 
 - **Ask a question** — type it in the prompt bar, shake your phone (on
   supported devices) or tap the ball.
-- **Smart answers** — Jev classifies your question and picks a fitting
-  answer; an empty question gets a random one. If Jev can't be reached, the
-  ball shows an error instead of answering. Without an `AI_GATEWAY_API_KEY`
+- **Smart answers** — Jev (`typesafe-ai/jev`, called through the
+  [Vercel AI Gateway](https://vercel.com/ai-gateway)) sorts your question
+  into yes, no, maybe, "rephrase that", rude or sensitive, and the ball picks
+  a fitting answer; an empty question gets a random one. If Jev can't be
+  reached, the ball shows an error instead of answering. Without an `AI_GATEWAY_API_KEY`
   (or with one the gateway rejects), a warning shows in the prompt bar and
   only random answers are available.
+- **Answer filters** — the "No maybes" and "No rude answers" toggles keep
+  those answers out, both for smart and random answers.
 - **Question log** — the current question floats above the ball, then the
   three most recent answers stay on screen for reference.
 - **English, Spanish and Galician** — the language follows the browser's
   (and so the system's) language, falling back to English; each has its own
   URL (`/en`, `/es`, `/gl`). Texts live in `app/[lang]/dictionaries/`.
+- **Graphics quality** — Auto adapts to the device; Low, Medium and High can
+  be picked from the graphics menu, and the choice is remembered.
 - **Installable** — add it to your home screen; it runs full-screen with an
   app icon and web app manifest.
 
@@ -82,5 +88,11 @@ This project builds on the work of others:
 - **Procedural bump** — the screen-space normal perturbation follows three.js's
   bump-map shader chunk ([three.js](https://github.com/mrdoob/three.js), MIT).
 
-The answers are the twenty classic Magic 8-Ball responses. "Magic 8 Ball" is a
-trademark of Mattel; this project is not affiliated with or endorsed by Mattel.
+The answers are inspired by the classic Magic 8-Ball responses. "Magic 8 Ball"
+is a trademark of Mattel; this project is not affiliated with or endorsed by
+Mattel.
+
+## License
+
+[MIT](LICENSE) © 2026 Raúl Mouzo. Third-party code keeps its own license, as
+listed in [Credits](#credits).
