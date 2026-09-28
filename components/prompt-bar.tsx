@@ -4,6 +4,7 @@
 
 import {
   type KeyboardEvent,
+  type ReactNode,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -20,6 +21,10 @@ type Props = {
   /** Sending with an empty box is allowed. */
   onSend: () => void;
   disabled?: boolean;
+  /** Locks the text box only; sending (a random answer) still works. */
+  inputDisabled?: boolean;
+  /** Shown before the text box, e.g. a status icon. */
+  leading?: ReactNode;
   placeholder?: string;
   maxLength?: number;
   /** True while the bar has mouse hover or visible focus. */
@@ -31,6 +36,8 @@ export function PromptBar({
   onChange,
   onSend,
   disabled = false,
+  inputDisabled = false,
+  leading,
   placeholder,
   maxLength,
   onHighlightChange,
@@ -109,8 +116,10 @@ export function PromptBar({
       onFocus={(event) => setFocused(event.target.matches(":focus-visible"))}
       onBlur={() => setFocused(false)}
     >
+      {leading}
       <textarea
         ref={inputRef}
+        disabled={inputDisabled}
         rows={1}
         value={value}
         // Pasted line breaks become spaces.
@@ -123,7 +132,7 @@ export function PromptBar({
         // 16px on touch screens stops iOS from zooming in on focus. The
         // scrollbar is a thin violet thumb with no track; the ::-webkit
         // rules cover Safari, which ignores scrollbar-color.
-        className="my-[5px] block min-w-0 flex-1 resize-none bg-transparent text-sm leading-[22px] text-violet-50 outline-none [overflow-wrap:anywhere] [scrollbar-color:color-mix(in_oklab,var(--color-violet-300)_45%,transparent)_transparent] [scrollbar-width:thin] placeholder:text-violet-200/40 placeholder:text-ellipsis placeholder:whitespace-nowrap pointer-coarse:text-base [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-violet-300/45 [&::-webkit-scrollbar-track]:bg-transparent"
+        className="my-[5px] block min-w-0 flex-1 resize-none bg-transparent text-sm leading-[22px] text-violet-50 outline-none [overflow-wrap:anywhere] [scrollbar-color:color-mix(in_oklab,var(--color-violet-300)_45%,transparent)_transparent] [scrollbar-width:thin] placeholder:text-violet-200/40 placeholder:text-ellipsis disabled:cursor-not-allowed placeholder:whitespace-nowrap pointer-coarse:text-base [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-violet-300/45 [&::-webkit-scrollbar-track]:bg-transparent"
       />
       {/* With nothing typed it reads "Or go random"; the label folds away on typing. */}
       <button

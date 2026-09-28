@@ -10,7 +10,10 @@ animated shard background reacts to what the ball is doing.
 - **Ask a question** — type it in the prompt bar, shake your phone (on
   supported devices) or tap the ball.
 - **Smart answers** — Jev classifies your question and picks a fitting
-  answer; an empty or failed question gets a classic "unsure" response.
+  answer; an empty question gets a random one. If Jev can't be reached, the
+  ball shows an error instead of answering. Without an `AI_GATEWAY_API_KEY`
+  (or with one the gateway rejects), a warning shows in the prompt bar and
+  only random answers are available.
 - **Question log** — the current question floats above the ball, then the
   three most recent answers stay on screen for reference.
 - **English, Spanish and Galician** — the language follows the browser's

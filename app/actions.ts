@@ -1,6 +1,7 @@
 "use server";
 
 import type { AnswerCategory } from "@/components/magic-eight-ball/answers";
+import { getAiGatewayKey } from "@/lib/ai-gateway";
 
 const MAX_QUESTION_LENGTH = 200;
 
@@ -22,6 +23,8 @@ const OPTIONAL: readonly AnswerCategory[] = ["unsure", "rude"];
 
 // Serious topics win even when Jev only partly suspects them.
 const SENSITIVE_THRESHOLD = 0.3;
+// Past this, Jev counts as unreachable.
+const TIMEOUT_MS = 10_000;
 
 type EvaluateResponse = {
   answers?: {
@@ -29,20 +32,29 @@ type EvaluateResponse = {
   };
 };
 
+/**
+ * `noKey`: there's no key, or the gateway rejects it. `unavailable`: Jev
+ * couldn't be reached or gave no usable answer. `invalid`: nothing to ask.
+ */
+export type ClassifyResult =
+  | { ok: true; category: AnswerCategory }
+  | { ok: false; error: "noKey" | "unavailable" | "invalid" };
+
 const isCategory = (value: unknown): value is AnswerCategory =>
   typeof value === "string" && Object.hasOwn(CRITERIA, value);
 
-/** Picks the answer category for a question with Jev, or null if it can't. `exclude` turns off optional categories. */
+/** Picks the answer category for a question with Jev. `exclude` turns off optional categories. */
 export async function classifyQuestion(
   question: string,
   exclude: AnswerCategory[] = [],
-): Promise<AnswerCategory | null> {
+): Promise<ClassifyResult> {
   // Reachable by direct POST, so the argument may not be a string.
-  console.log("[m8] classifyQuestion", { question, hasKey: Boolean(process.env.AI_GATEWAY_API_KEY) });
-  if (typeof question !== "string") return null;
+  const apiKey = getAiGatewayKey();
+  console.log("[m8] classifyQuestion", { question, hasKey: Boolean(apiKey) });
+  if (!apiKey) return { ok: false, error: "noKey" };
+  if (typeof question !== "string") return { ok: false, error: "invalid" };
   const state = question.trim().slice(0, MAX_QUESTION_LENGTH);
-  const apiKey = process.env.AI_GATEWAY_API_KEY;
-  if (!state || !apiKey) return null;
+  if (!state) return { ok: false, error: "invalid" };
   const excluded = Array.isArray(exclude) ? OPTIONAL.filter((c) => exclude.includes(c)) : [];
   const criteria = Object.fromEntries(
     Object.entries(CRITERIA).filter(([category]) => !excluded.includes(category as AnswerCategory)),
@@ -50,6 +62,7 @@ export async function classifyQuestion(
 
   const response = await fetch("https://ai-gateway.vercel.sh/v1/evaluate", {
     method: "POST",
+    signal: AbortSignal.timeout(TIMEOUT_MS),
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: "typesafe-ai/jev",
@@ -63,15 +76,23 @@ export async function classifyQuestion(
         },
       },
     }),
+  }).catch((error: unknown) => {
+    // Network failure or timeout.
+    console.error("Jev evaluation failed", error);
+    return null;
   });
+  if (!response) return { ok: false, error: "unavailable" };
   if (!response.ok) {
     console.error(`Jev evaluation failed with ${response.status}`, await response.text());
-    return null;
+    const rejected = response.status === 401 || response.status === 403;
+    return { ok: false, error: rejected ? "noKey" : "unavailable" };
   }
 
-  const { answers }: EvaluateResponse = await response.json();
+  const { answers }: EvaluateResponse = await response.json().catch(() => ({}));
   console.log("[m8] Jev answers", JSON.stringify(answers));
   const { choice, probabilities } = answers?.category ?? {};
-  if ((probabilities?.sensitive ?? 0) >= SENSITIVE_THRESHOLD) return "sensitive";
-  return isCategory(choice) && !excluded.includes(choice) ? choice : null;
+  if ((probabilities?.sensitive ?? 0) >= SENSITIVE_THRESHOLD) return { ok: true, category: "sensitive" };
+  return isCategory(choice) && !excluded.includes(choice)
+    ? { ok: true, category: choice }
+    : { ok: false, error: "unavailable" };
 }

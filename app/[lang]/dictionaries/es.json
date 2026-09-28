@@ -10,7 +10,10 @@
     "noRude": "Sin respuestas groseras",
     "orShake": "o agita el móvil",
     "orTap": "o toca la bola",
-    "poweredBy": "Con tecnología de Jev"
+    "poweredBy": "Con tecnología de Jev",
+    "aiError": "No se pudo conectar con la IA. Inténtalo de nuevo.",
+    "aiUnavailable": "IA no conectada",
+    "aiUnavailableTip": "No hay ninguna IA conectada, así que la bola no puede leer las preguntas. Aún puede dar respuestas al azar."
   },
   "promptBar": {
     "question": "Tu pregunta",

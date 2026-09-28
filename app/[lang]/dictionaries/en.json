@@ -10,7 +10,10 @@
     "noRude": "No rude answers",
     "orShake": "or shake your phone",
     "orTap": "or tap it",
-    "poweredBy": "Powered by Jev"
+    "poweredBy": "Powered by Jev",
+    "aiError": "Couldn’t reach the AI. Try again.",
+    "aiUnavailable": "AI not connected",
+    "aiUnavailableTip": "No AI is connected, so the ball can’t read questions. It can still give random answers."
   },
   "promptBar": {
     "question": "Your question",

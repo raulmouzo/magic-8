@@ -11,7 +11,10 @@
     "noRude": "Sen respostas groseiras",
     "orShake": "ou axita o móbil",
     "orTap": "ou tócaa",
-    "poweredBy": "Coa tecnoloxía de Jev"
+    "poweredBy": "Coa tecnoloxía de Jev",
+    "aiError": "Non se puido conectar coa IA. Téntao de novo.",
+    "aiUnavailable": "IA non conectada",
+    "aiUnavailableTip": "Non hai ningunha IA conectada, así que a bola non pode ler as preguntas. Aínda pode dar respostas ao chou."
   },
 
   "promptBar": {
