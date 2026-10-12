@@ -12,9 +12,12 @@ const dictionaries: Record<Locale, () => Promise<Dictionary>> = {
   gl: () => import("./dictionaries/gl.json").then((module) => module.default),
 };
 
+/** The texts for a language, where the root params can't be read (image routes). */
+export const getDictionaryFor = (locale: Locale): Promise<Dictionary> => dictionaries[locale]();
+
 /** The texts for the language in the URL. */
 export const getDictionary = async (): Promise<Dictionary> => {
   const locale = await lang();
   if (!hasLocale(locale)) notFound();
-  return dictionaries[locale]();
+  return getDictionaryFor(locale);
 };

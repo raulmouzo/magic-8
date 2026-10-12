@@ -1,8 +1,13 @@
 {
   "metadata": {
-    "title": "Magic 8 Ball",
-    "description": "Ask the Magic 8 Ball a question.",
-    "notFoundTitle": "Page not found · Magic 8 Ball"
+    "title": "Magic 8 Ball — Ask any yes-or-no question",
+    "description": "A 3D Magic 8 Ball in your browser. Type a question or shake your phone: the ball reads it with AI and answers yes, no or maybe. Free, no sign-up.",
+    "keywords": ["magic 8 ball", "magic eight ball", "8 ball", "yes or no", "ask a question", "fortune teller", "online magic 8 ball"],
+    "notFoundTitle": "Page not found · Magic 8 Ball",
+    "ogHeadline": "Ask the ball.",
+    "ogTagline": "Type a question or shake your phone.",
+    "ogAnswers": "Yes · No · Maybe",
+    "ogAlt": "Magic 8 Ball: a violet triangle, the answer die from the ball’s window, and the words “Ask the ball.”"
   },
   "home": {
     "placeholder": "Ask something",

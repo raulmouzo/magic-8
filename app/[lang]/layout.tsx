@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { lang } from "next/root-params";
 import { DictionaryProvider } from "@/components/dictionary-provider";
-import { locales } from "@/i18n/locales";
+import { type Locale, locales } from "@/i18n/locales";
+import { AUTHOR, BACKGROUND, OG_LOCALES, SITE_NAME, SITE_URL } from "@/lib/site";
 import { getDictionary } from "./dictionaries";
 import "../globals.css";
 
@@ -23,12 +24,34 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ lang: locale }));
 }
 
+// Shared by every page in a language; the canonical URL and its alternates
+// are set by the home page, the only one to index.
 export async function generateMetadata(): Promise<Metadata> {
+  const locale = await lang();
   const { metadata } = await getDictionary();
   return {
+    metadataBase: new URL(SITE_URL),
     title: metadata.title,
     description: metadata.description,
-    applicationName: "Magic 8 Ball",
+    keywords: metadata.keywords,
+    applicationName: SITE_NAME,
+    authors: [AUTHOR],
+    creator: AUTHOR.name,
+    // The image comes from opengraph-image.tsx; Next.js uses it for X too.
+    openGraph: {
+      type: "website",
+      siteName: SITE_NAME,
+      title: metadata.title,
+      description: metadata.description,
+      url: `/${locale}`,
+      locale: OG_LOCALES[locale as Locale],
+      alternateLocale: locales.filter((l) => l !== locale).map((l) => OG_LOCALES[l]),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: metadata.title,
+      description: metadata.description,
+    },
     // Added to the home screen: full screen, content under the status bar.
     appleWebApp: {
       capable: true,
@@ -42,7 +65,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const viewport: Viewport = {
   // The page background (and AeroShards' default), so the browser bars blend in.
-  themeColor: "#120F17",
+  themeColor: BACKGROUND,
   colorScheme: "dark",
   // Draw under the notch and home indicator; the layout pads with
   // env(safe-area-inset-*), which is 0 without this.
