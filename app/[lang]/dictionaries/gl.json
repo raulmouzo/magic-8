@@ -1,8 +1,13 @@
 {
   "metadata": {
-    "title": "Magic 8 Ball",
-    "description": "Faille unha pregunta á Magic 8 Ball.",
-    "notFoundTitle": "Páxina non atopada · Magic 8 Ball"
+    "title": "Magic 8 Ball — Fai calquera pregunta de si ou non",
+    "description": "Unha Magic 8 Ball en 3D no teu navegador. Escribe unha pregunta ou axita o móbil: a bola léa con IA e responde si, non ou quizais. De balde e sen rexistro.",
+    "keywords": ["bola 8 máxica", "magic 8 ball", "bola máxica", "bola 8", "si ou non", "facer unha pregunta", "adiviño en liña"],
+    "notFoundTitle": "Páxina non atopada · Magic 8 Ball",
+    "ogHeadline": "Pregúntalle á bola.",
+    "ogTagline": "Escribe unha pregunta ou axita o móbil.",
+    "ogAnswers": "Si · Non · Quizais",
+    "ogAlt": "Magic 8 Ball: un triángulo violeta, o dado de respostas da xanela da bola, e o texto «Pregúntalle á bola.»"
   },
 
   "home": {

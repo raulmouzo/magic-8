@@ -1,23 +1,28 @@
 import type { MetadataRoute } from "next";
+import { BACKGROUND, SITE_NAME } from "@/lib/site";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Magic 8 Ball",
+    id: "/",
+    name: SITE_NAME,
     short_name: "Magic 8",
-    description: "Ask the Magic 8 Ball a question.",
+    description: "A 3D Magic 8 Ball: ask a yes-or-no question and shake your phone.",
     start_url: "/",
     display: "standalone",
+    categories: ["entertainment", "games"],
     // The page background, so the launch screen matches the app.
-    background_color: "#120F17",
-    theme_color: "#120F17",
-    // Opaque, with the triangle inside the maskable safe zone.
-    icons: [192, 512].flatMap((size) =>
-      (["any", "maskable"] as const).map((purpose) => ({
-        src: `/icon-${size}.png`,
+    background_color: BACKGROUND,
+    theme_color: BACKGROUND,
+    // "any" is the ball alone; "maskable" puts it on the background, inside
+    // the safe zone. Both are rendered from app/icon.svg.
+    icons: [192, 512].flatMap((size) => [
+      { src: `/icon-${size}.png`, sizes: `${size}x${size}`, type: "image/png", purpose: "any" as const },
+      {
+        src: `/icon-maskable-${size}.png`,
         sizes: `${size}x${size}`,
         type: "image/png",
-        purpose,
-      })),
-    ),
+        purpose: "maskable" as const,
+      },
+    ]),
   };
 }

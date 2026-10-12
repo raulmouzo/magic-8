@@ -5,7 +5,7 @@ import { getDictionary } from "./dictionaries";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { metadata } = await getDictionary();
-  return { title: metadata.notFoundTitle };
+  return { title: metadata.notFoundTitle, robots: { index: false } };
 }
 
 export default async function NotFound() {
