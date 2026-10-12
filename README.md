@@ -55,8 +55,11 @@ pnpm install
 | Variable             | Required | Description                                                      |
 | -------------------- | -------- | ---------------------------------------------------------------- |
 | `AI_GATEWAY_API_KEY` | No       | Enables smart answers. Without it, only random answers are used. |
+| `SITE_NOTICE`          | No       | Message shown at the top when the site opens, in inline Markdown (`**bold**`, `*italic*`, `` `code` ``, `[link](https://…)`; two spaces start a new paragraph). Unset or empty: no notice. |
+| `SITE_NOTICE_DURATION` | No       | How long the notice stays, in milliseconds (default `5000`).             |
+| `SITE_NOTICE_ALWAYS`   | No       | `true` shows it on every load instead of once per session.               |
 
-Put it in a `.env.local` file at the project root.
+Copy `.env.example` to `.env.local` at the project root (or in the Vercel project settings). They're read at build time, so a change on Vercel needs a redeploy.
 
 ### Scripts
 

@@ -59,6 +59,9 @@
       "low": "Smoothest on older phones"
     }
   },
+  "languageSwitcher": {
+    "label": "Language"
+  },
   "notFound": {
     "error": "Error 404",
     "title": "Reply hazy, try again",

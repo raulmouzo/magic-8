@@ -13,6 +13,7 @@ import {
   useShake,
 } from "@/components/magic-eight-ball/MagicEightBall";
 import { type QualityLevel, useGraphicsQuality } from "@/components/graphics-quality";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { MotionPermissionPrompt, useMotionPromptSeen } from "@/components/motion-permission-prompt";
 import { PromptBar } from "@/components/prompt-bar";
 import { QualityMenu } from "@/components/quality-menu";
@@ -279,7 +280,7 @@ export function Home({ aiConfigured }: { aiConfigured: boolean }) {
           />
         </div>
 
-        <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center px-[max(1rem,env(safe-area-inset-left),env(safe-area-inset-right))] pt-[max(1.5rem,env(safe-area-inset-top))] md:px-8 md:pt-10">
+        <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center px-[max(1rem,env(safe-area-inset-left),env(safe-area-inset-right))] pt-[max(2rem,calc(env(safe-area-inset-top)+1.25rem))] md:px-8 md:pt-10">
           <QuestionLog current={current} history={history} compact={Boolean(keyboard)} />
         </div>
 
@@ -325,6 +326,11 @@ export function Home({ aiConfigured }: { aiConfigured: boolean }) {
             {canShake ? t.home.orShake : t.home.orTap}
           </p>
         </div>
+
+        {/* Above the question log on phones, which leaves room for it. */}
+        {!keyboard && (
+          <LanguageSwitcher className="absolute top-[max(0.625rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))]" />
+        )}
 
         {!keyboard && (
           <QualityMenu
